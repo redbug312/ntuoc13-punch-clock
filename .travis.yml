@@ -1,0 +1,42 @@
+language: python
+python: 3.6
+os: linux
+
+install: pip3 install -r requirements/base.txt
+script: make build
+
+jobs:
+  include:
+  - os: linux
+    addons: {apt: {packages: [python3-pip, python3-setuptools]}}
+    before_install:
+    - gem install --no-document fpm
+    - python -m venv env
+    - source env/bin/activate
+    deploy:
+      provider: releases
+      token: $GITHUB_TOKEN
+      file: target/ntuoc13-interview-scheduler.deb
+      edge: true
+      on: {tags: true}
+  - os: windows
+    language: shell
+    env: PATH=/c/Python36:/c/Python36/Scripts:$PATH
+    before_install:
+    - choco install make nsis vcredist2010 vcredist2012 vcredist2015
+    - choco install python3 --version=3.6.8
+    - python -m venv env
+    - source env/Scripts/activate
+    after_success:
+    - mv target/ntuoc13-interview-schedulerSetup.exe
+         target/ntuoc13-interview-scheduler-installer.exe
+    deploy:
+      provider: releases
+      token: $GITHUB_TOKEN
+      file: target/ntuoc13-interview-scheduler-installer.exe
+      edge: true
+      on: {tags: true}
+
+env:
+  global:
+    secure: jiM6wissdVsUq4J7l8uWKGy8vvk55g91a3/Xus2LLn7Xhi65QpPBhBnrZrGTWM1cBiZGN9ArFfkHwF+bMUIec3t1o97pGXzgr8kgdkJyknXRbzLtgTsSJmQaJigHzKrnLEzZd4B+qbEcNLCht7+B5kBED7vGlYEcb3X2uSqoHOPYd/h63fAdeecIoXgAVegHN6u/VYv2jtmnV0T1slxuFN45BtO3LSvbta7pzbXd2ZtFD+abjvDWqZtEXCBLz4ZNXEXMy28iqJeCvdgFhDCnjJAq5TV1M5IecBY3pyDondOi0om/8/pKAi3Hz4FWbocy7p6Keb2P/3FgGcSGJBKh7JUwZqbvHcOEWLVxyYyViFj0geC68ELBfepa3xW1J8LojpFKDo9rtgrj/MgBCk4SezozuLN5FfoSuludnl0hmBEU6/VL/B/eFwYrpncGCRAKzqswBPs2ha3w4GgHUh4nSQUBIkDYMy4fmGL4S+OmjfJWZWvL3Gb1vkGZ5UPOxVPWTSUwKiKML/9iBbPgtDM2zNmn1lrKs45mbJC2M+bPNypb0ob9/upArULxFIX4zV+08hnB81AD7QwQ4yxYz4VrbSqhUxt55DQGPHAZJASC9+VaaeP8YUrAELycxPpuBcQfMLGo5dScHimY+SEEtp5w5wjI4nL4oRU3EH1Pl09KZR4=

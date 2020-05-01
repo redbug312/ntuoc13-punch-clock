@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <property name="spacing">
+     <number>10</number>
+    </property>
+    <property name="leftMargin">
+     <number>9</number>
+    </property>
+    <property name="topMargin">
+     <number>9</number>
+    </property>
+    <property name="rightMargin">
+     <number>9</number>
+    </property>
+    <property name="bottomMargin">
+     <number>9</number>
+    </property>
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QGroupBox" name="groupBox">
+        <property name="title">
+         <string>簽到名單設定</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <item>
+          <layout class="QGridLayout" name="gridLayout" columnstretch="0,0">
+           <item row="1" column="1">
+            <widget class="AlphabetSpinBox" name="cardSpinbox">
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="value">
+              <number>7</number>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="cardLabel">
+             <property name="text">
+              <string>卡號欄位</string>
+             </property>
+             <property name="buddy">
+              <cstring>cardSpinbox</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="AlphabetSpinBox" name="idSpinbox">
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="value">
+              <number>6</number>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="idLabel">
+             <property name="text">
+              <string>學號欄位</string>
+             </property>
+             <property name="buddy">
+              <cstring>idSpinbox</cstring>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="groupBox_2">
+        <property name="title">
+         <string>掃描證件設定</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_5">
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_4">
+           <item>
+            <widget class="QLineEdit" name="scanLineEdit">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>150</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="placeholderText">
+              <string>掃描證件或輸入學號</string>
+             </property>
+             <property name="clearButtonEnabled">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QGridLayout" name="gridLayout_5">
+             <item row="1" column="1">
+              <widget class="QSpinBox" name="totalSpinbox"/>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="totalLabel">
+               <property name="text">
+                <string>應到人數</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="lateLabel">
+               <property name="text">
+                <string>遲到時間</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QTimeEdit" name="lateTimeEdit">
+               <property name="displayFormat">
+                <string>hh:mm</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="overwriteCheckbox">
+             <property name="text">
+              <string>寫入學生證卡號</string>
+             </property>
+             <property name="icon">
+              <iconset theme="view-certificate-add">
+               <normaloff>../../../../../../../../.designer/backup</normaloff>../../../../../../../../.designer/backup</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>16</width>
+               <height>16</height>
+              </size>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="panelCheckbox">
+             <property name="text">
+              <string>顯示掃描資料</string>
+             </property>
+             <property name="icon">
+              <iconset theme="window-new">
+               <normaloff>.</normaloff>.</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>16</width>
+               <height>16</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>171</width>
+          <height>208</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_11">
+        <property name="spacing">
+         <number>6</number>
+        </property>
+        <item>
+         <widget class="QPushButton" name="fileOpenButton">
+          <property name="text">
+           <string>開啟簽到名單(&amp;O)</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="fileSaveButton">
+          <property name="text">
+           <string>儲存簽到結果(&amp;S)</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <property name="spacing">
+       <number>5</number>
+      </property>
+      <item>
+       <widget class="QTabWidget" name="tabWidget">
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <widget class="QWidget" name="checkInSheetTab">
+         <attribute name="title">
+          <string>簽到名單</string>
+         </attribute>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="DropableTableView" name="checkInTableView">
+            <property name="tabKeyNavigation">
+             <bool>false</bool>
+            </property>
+            <property name="selectionMode">
+             <enum>QAbstractItemView::NoSelection</enum>
+            </property>
+            <property name="sortingEnabled">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="DropableFrame" name="placeholderFrame"/>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <property name="topMargin">
+         <number>2</number>
+        </property>
+        <property name="bottomMargin">
+         <number>2</number>
+        </property>
+        <item>
+         <widget class="QProgressBar" name="checkInProgressbar">
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>20</height>
+           </size>
+          </property>
+          <property name="value">
+           <number>24</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>AlphabetSpinBox</class>
+   <extends>QSpinBox</extends>
+   <header location="global">widgets.h</header>
+  </customwidget>
+  <customwidget>
+   <class>DropableFrame</class>
+   <extends>QFrame</extends>
+   <header location="global">widgets.h</header>
+   <container>1</container>
+   <slots>
+    <signal>dropped(QString)</signal>
+   </slots>
+  </customwidget>
+  <customwidget>
+   <class>DropableTableView</class>
+   <extends>QTableView</extends>
+   <header location="global">widgets.h</header>
+  </customwidget>
+ </customwidgets>
+ <tabstops>
+  <tabstop>idSpinbox</tabstop>
+  <tabstop>cardSpinbox</tabstop>
+  <tabstop>scanLineEdit</tabstop>
+  <tabstop>lateTimeEdit</tabstop>
+  <tabstop>totalSpinbox</tabstop>
+  <tabstop>overwriteCheckbox</tabstop>
+  <tabstop>panelCheckbox</tabstop>
+  <tabstop>fileOpenButton</tabstop>
+  <tabstop>fileSaveButton</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>checkInTableView</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

@@ -1,0 +1,5 @@
+env/
+target/
+src/main/python/__pycache__/
+
+*.xlsx
