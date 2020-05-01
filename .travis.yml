@@ -15,7 +15,7 @@ jobs:
     - source env/bin/activate
     deploy:
       provider: releases
-      api_key: ${GITHUB_TOKEN}
+      token: ${GITHUB_TOKEN}
       file: target/ntuoc13-check-in-machine.deb
       edge: true
       on: {tags: true}
@@ -32,7 +32,7 @@ jobs:
          target/ntuoc13-check-in-machine-installer.exe
     deploy:
       provider: releases
-      api_key: ${GITHUB_TOKEN}
+      token: ${GITHUB_TOKEN}
       file: target/ntuoc13-check-in-machine-installer.exe
       edge: true
       on: {tags: true}

@@ -3,7 +3,7 @@ import re
 from datetime import date, datetime
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, QTime, pyqtSlot as slot
-from PyQt5.QtGui import QColor, QPalette
+from PyQt5.QtGui import QColor, QFont, QPalette
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QAbstractItemView
 
 from models import CheckInTableModel
@@ -94,11 +94,9 @@ class MainWindow(QMainWindow):
         deadline_time = self.lateTimeEdit.time().toPyTime()
         deadline = datetime.combine(date.today(), deadline_time)
         if re.fullmatch(r'[A-Za-z]\d{2}\w\d{5}', scan):  # manually inputed
-            scan = scan.upper()
-            self.sheet.checkin(self.idSpinbox.value(), scan, deadline)
+            self.sheet.checkin(self.idSpinbox.value(), scan.upper(), deadline)
         elif re.fullmatch(r'[A-Za-z]\d{2}\w\d{6}', scan):  # scan barcode
-            scan = scan[:-1].upper()
-            self.sheet.checkin(self.idSpinbox.value(), scan, deadline)
+            self.sheet.checkin(self.idSpinbox.value(), scan[:-1].upper(), deadline)
         elif re.fullmatch(r'\d{10}', scan):  # scan rfc code
             if self.overwriteCheckbox.isChecked():
                 self.sheet.fillCard(self.cardSpinbox.value(), scan)
@@ -148,9 +146,14 @@ class PanelWindow(QMainWindow):
         super().__init__(parent)
         uic.loadUi(context.panelUi, self)
 
+        sans = QFont('IPAexGothic')
+        sans.insertSubstitutions('sans', ['Noto Sans CJK TC', 'Microsoft YaHei'])
+        sans.setStyleStrategy(QFont.PreferAntialias)
+        self.setFont(sans)
+
     def setFailureMessage(self, scan, reason):
         self.infoLabel.setText(
-            '<div align="center" style="font-size:36pt;">' +
+            '<div align="center" style="font-size:36pt; color:#2E3436;">' +
             f'<p>掃描條碼失敗</p>' +
             f'<p style="font-size:18pt; color:#888A85;">{reason}：{scan}</p>' +
             '</div>'
@@ -159,12 +162,12 @@ class PanelWindow(QMainWindow):
     def setSuccessMessage(self, info, deadline):
         passed_mins = int((info.iloc[0, 2] - deadline).total_seconds() / 60)
         self.infoLabel.setText(
-            '<div align="center" style="font-size:36pt"><table>' +
+            '<div align="center" style="font-size:36pt; color:#2E3436;"><table>' +
             ''.join([f'<tr><td align="right">{k}：</td><td>{v}</td></tr>'
                      for k, v in info.iloc[0, 3:6].items()]) +
             '</table>' +
             '<p style="color:%s">%s</p></div>' % (
                 '#4E9A06' if passed_mins < 5 else '#A40000',
-                '準時抵達' if passed_mins <= 0 else f'遲到 {passed_mins} 分鐘'
+                '準時簽到' if passed_mins <= 0 else f'遲到 {passed_mins} 分鐘'
             )
         )
