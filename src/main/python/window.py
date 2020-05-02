@@ -9,7 +9,6 @@ from PyQt5.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QAbstractItem
 from models import CheckInTableModel
 
 
-DEFAULT_COLOR = QColor('white')
 LATEST_COLOR = QColor(240, 198, 116, 50)
 INTVW_COLOR = QColor(178, 148, 187, 50)
 TMSLT_COLOR = QColor(138, 190, 183, 50)
@@ -55,7 +54,7 @@ class MainWindow(QMainWindow):
                 return False
             xlsx = dialog.selectedFiles()[0]
             # xlsx = 'oc13.xlsx'
-        self.sheet.populate(xlsx)
+        self.sheet.open(xlsx)
         # View
         self.placeholderFrame.hide()
         self.lateTimeEdit.setDisabled(False)
@@ -84,7 +83,7 @@ class MainWindow(QMainWindow):
             # xlsx = 'output.xlsx'
         if not xlsx.endswith('.xlsx'):
             xlsx += '.xlsx'
-        self.sheet.export(xlsx)
+        self.sheet.save(xlsx)
 
     @slot()
     def scanCard(self):
@@ -107,13 +106,13 @@ class MainWindow(QMainWindow):
             self.sheet.latest = None
             return
         # Highlight latest checked-in one
-        self.lateTimeEdit.setDisabled(True)
-        self.checkInProgressbar.setValue(sum(self.sheet.frame.iloc[1:].checked))
+        # self.lateTimeEdit.setDisabled(True)
+        self.checkInProgressbar.setValue(sum(self.sheet.df.iloc[1:].checked))
         info = self.sheet.getLatestInfo()
         print(info)
         if not info.empty:
             row = info.index[0] + 1
-            self.sheet.setRange('latest', (row, ) * 2, (1, self.sheet.columnCount()), LATEST_COLOR)
+            self.sheet.range('latest', (row, row), (1, self.sheet.columnCount()), LATEST_COLOR)
             focus = self.checkInTableView.model().index(row, 0)
             self.checkInTableView.scrollTo(focus, QAbstractItemView.PositionAtCenter)
             self.panel.setSuccessMessage(info, deadline)
@@ -137,8 +136,8 @@ class MainWindow(QMainWindow):
             rows = 2, self.sheet.rowCount()
             cols_id = (self.idSpinbox.value(), ) * 2
             cols_card = (self.cardSpinbox.value(), ) * 2
-            self.sheet.setRange('interviewee', rows, cols_id, INTVW_COLOR)
-            self.sheet.setRange('timeslot', rows, cols_card, TMSLT_COLOR)
+            self.sheet.range('interviewee', rows, cols_id, INTVW_COLOR)
+            self.sheet.range('timeslot', rows, cols_card, TMSLT_COLOR)
 
 
 class PanelWindow(QMainWindow):
