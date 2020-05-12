@@ -34,7 +34,7 @@
     </spacer>
    </item>
    <item>
-    <widget class="QLabel" name="iconLabel">
+    <widget class="QLabel" name="uiIconLbl">
      <property name="text">
       <string/>
      </property>
@@ -44,12 +44,12 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="textLabel">
+    <widget class="QLabel" name="uiTextLbl">
      <property name="styleSheet">
-      <string notr="true">color: #767676; font-size: 16px; font-weight: 700;</string>
+      <string notr="true">color: #646464; font-size: 16px; font-weight: 700;</string>
      </property>
      <property name="text">
-      <string>Here</string>
+      <string>Placeholder</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
