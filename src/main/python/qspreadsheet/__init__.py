@@ -1,2 +1,2 @@
 #!/usr/bin/env python3
-from .qspreadsheet import QSpreadSheetModel
+from .qspreadsheetmodel import QSpreadSheetModel

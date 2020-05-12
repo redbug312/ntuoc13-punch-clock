@@ -3,7 +3,7 @@ from functools import reduce
 from PyQt5.QtGui import QValidator
 from PyQt5.QtWidgets import QSpinBox, QFrame, QTableView
 
-from mixins import DropableWidget
+from qspreadsheet.mixins import DropableWidget
 
 
 class AlphabetSpinBox(QSpinBox):
@@ -27,31 +27,3 @@ class AlphabetSpinBox(QSpinBox):
             num, rem = divmod(num - 1, 26)
             name = chr(65 + rem) + name
         return name
-
-
-class DropableFrame(QFrame, DropableWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
-    def setOverlay(self, overlay):
-        self.overlay = overlay
-        self.overlay.hide()
-
-    def setContent(self, icon, text):
-        self.iconLabel.setPixmap(icon)
-        self.textLabel.setText(text)
-
-    def hide(self):
-        super().hide()
-        self.overlay.show()
-
-    def isFileDropable(self, url):
-        return url.endswith('.xlsx')
-
-
-class DropableTableView(QTableView, DropableWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
-    def isFileDropable(self, url):
-        return url.endswith('.xlsx')
