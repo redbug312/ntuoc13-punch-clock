@@ -19,27 +19,27 @@ class MainWindow(QMainWindow):
     def __init__(self, context, parent=None):
         super().__init__(parent)
         uic.loadUi(context.ui, self)
-        uic.loadUi(context.placeholderUi, self.checkInSheet.frame)
-        self.lateTimeEdit.setTime(QTime.currentTime())
+        uic.loadUi(context.placeholderUi, self.uiCheckInFrame.frame)
+        self.uiLateTime.setTime(QTime.currentTime())
 
         self.sheet = CheckInTableModel()
-        self.checkInSheet.frame.iconLabel.setPixmap(context.excelPixmap)
-        self.checkInSheet.frame.textLabel.setText('尚未開啟簽到名單')
-        self.checkInSheet.view.setModel(self.sheet)
-        self.checkInSheet.view.setTabKeyNavigation(False)
-        self.checkInSheet.view.setSelectionMode(QAbstractItemView.NoSelection)
+        self.uiCheckInFrame.frame.iconLabel.setPixmap(context.excelPixmap)
+        self.uiCheckInFrame.frame.textLabel.setText('尚未開啟簽到名單')
+        self.uiCheckInFrame.view.setModel(self.sheet)
+        self.uiCheckInFrame.view.setTabKeyNavigation(False)
+        self.uiCheckInFrame.view.setSelectionMode(QAbstractItemView.NoSelection)
 
         self.panel = PanelWindow(context, parent=self)
 
         self.connects = [sig.connect(slt) for sig, slt in {
-            self.fileOpenButton.clicked:       self.openXlsx,
-            self.fileSaveButton.clicked:       self.saveXlsx,
-            self.scanLineEdit.returnPressed:   self.scanCard,
-            self.panelCheckbox.stateChanged:   lambda s: self.panel.setVisible(s == Qt.Checked),
-            self.checkInSheet.dropped:         lambda f: self.openXlsx(f),
-            self.idSpinbox.valueChanged:       lambda: self.updateFromSpreadsheet(4),
-            self.cardSpinbox.valueChanged:     lambda: self.updateFromSpreadsheet(4),
-            self.totalSpinbox.valueChanged:    lambda v: self.checkInProgressbar.setMaximum(v),
+            self.uiFileOpenBtn.clicked:     self.openXlsx,
+            self.uiFileSaveBtn.clicked:     self.saveXlsx,
+            self.uiScanEdit.returnPressed:  self.scanCard,
+            self.uiPanelChk.stateChanged:   lambda s: self.panel.setVisible(s == Qt.Checked),
+            self.uiCheckInFrame.dropped:    lambda f: self.openXlsx(f),
+            self.uiIdSpn.valueChanged:      lambda: self.updateFromSpreadsheet(4),
+            self.uiCardSpn.valueChanged:    lambda: self.updateFromSpreadsheet(4),
+            self.uiTotalSpn.valueChanged:   lambda v: self.uiCheckInProg.setMaximum(v),
         }.items()]
 
     @slot()
@@ -56,17 +56,17 @@ class MainWindow(QMainWindow):
             # xlsx = 'oc13.xlsx'
         self.sheet.open(xlsx)
         # View
-        self.checkInSheet.display()
-        self.lateTimeEdit.setDisabled(False)
-        self.scanLineEdit.setDisabled(False)
-        self.scanLineEdit.setFocus()
+        self.uiCheckInFrame.display()
+        self.uiLateTime.setDisabled(False)
+        self.uiScanEdit.setDisabled(False)
+        self.uiScanEdit.setFocus()
         self.updateFromSpreadsheet()
         # Spinbox backgrounds
-        palette = self.idSpinbox.palette()
+        palette = self.uiIdSpn.palette()
         palette.setColor(QPalette.Base, INTVW_COLOR.lighter())
-        self.idSpinbox.setPalette(palette)
+        self.uiIdSpn.setPalette(palette)
         palette.setColor(QPalette.Base, TMSLT_COLOR.lighter())
-        self.cardSpinbox.setPalette(palette)
+        self.uiCardSpn.setPalette(palette)
         self.statusbar.showMessage('載入 %d 列資料。' % self.sheet.rowCount())
 
     @slot()
@@ -87,34 +87,34 @@ class MainWindow(QMainWindow):
 
     @slot()
     def scanCard(self):
-        scan = self.scanLineEdit.text()
-        self.scanLineEdit.clear()
+        scan = self.uiScanEdit.text()
+        self.uiScanEdit.clear()
         # Update spreadsheet by scanned
-        deadline_time = self.lateTimeEdit.time().toPyTime()
+        deadline_time = self.uiLateTime.time().toPyTime()
         deadline = datetime.combine(date.today(), deadline_time)
         if re.fullmatch(r'[A-Za-z]\d{2}\w\d{5}', scan):  # manually inputed
-            self.sheet.checkin(self.idSpinbox.value(), scan.upper(), deadline)
+            self.sheet.checkin(self.uiIdSpn.value(), scan.upper(), deadline)
         elif re.fullmatch(r'[A-Za-z]\d{2}\w\d{6}', scan):  # scan barcode
-            self.sheet.checkin(self.idSpinbox.value(), scan[:-1].upper(), deadline)
+            self.sheet.checkin(self.uiIdSpn.value(), scan[:-1].upper(), deadline)
         elif re.fullmatch(r'\d{10}', scan):  # scan rfc code
-            if self.overwriteCheckbox.isChecked():
-                self.sheet.fillCard(self.cardSpinbox.value(), scan)
+            if self.uiOverwriteChk.isChecked():
+                self.sheet.fillCard(self.uiCardSpn.value(), scan)
             else:
-                self.sheet.checkin(self.cardSpinbox.value(), scan, deadline)
+                self.sheet.checkin(self.uiCardSpn.value(), scan, deadline)
         else:
             self.panel.setFailureMessage(scan, '號碼格式錯誤')
             self.sheet.latest = None
             return
         # Highlight latest checked-in one
         # self.lateTimeEdit.setDisabled(True)
-        self.checkInProgressbar.setValue(sum(self.sheet.df.iloc[1:].checked))
+        self.uiCheckInProg.setValue(sum(self.sheet.df.iloc[1:].checked))
         info = self.sheet.getLatestInfo()
         print(info)
         if not info.empty:
             row = info.index[0] + 1
             self.sheet.range('latest', (row, row), (1, self.sheet.columnCount()), LATEST_COLOR)
-            focus = self.checkInSheet.view.model().index(row, 0)
-            self.checkInSheet.view.scrollTo(focus, QAbstractItemView.PositionAtCenter)
+            focus = self.uiCheckInFrame.view.model().index(row, 0)
+            self.uiCheckInFrame.view.scrollTo(focus, QAbstractItemView.PositionAtCenter)
             self.panel.setSuccessMessage(info, deadline)
         else:
             self.panel.setFailureMessage(scan, '號碼不存在')
@@ -125,17 +125,17 @@ class MainWindow(QMainWindow):
         # Update order determined by the spinboxes read/write operations
         if flags & 0b0001:  # shape of spreadsheet
             cols = self.sheet.columnCount()
-            self.idSpinbox.setMaximum(cols)
-            self.cardSpinbox.setMaximum(cols)
+            self.uiIdSpn.setMaximum(cols)
+            self.uiCardSpn.setMaximum(cols)
             rows = self.sheet.rowCount()
-            self.totalSpinbox.setMaximum(rows - 1)
-            self.totalSpinbox.setValue(rows - 1)
+            self.uiTotalSpn.setMaximum(rows - 1)
+            self.uiTotalSpn.setValue(rows - 1)
         if flags & 0b0010:  # columnhead of spreadsheet
             pass
         if flags & 0b0100:  # ranges in spreadsheet
             rows = 2, self.sheet.rowCount()
-            cols_id = (self.idSpinbox.value(), ) * 2
-            cols_card = (self.cardSpinbox.value(), ) * 2
+            cols_id = (self.uiIdSpn.value(), ) * 2
+            cols_card = (self.uiCardSpn.value(), ) * 2
             self.sheet.range('interviewee', rows, cols_id, INTVW_COLOR)
             self.sheet.range('timeslot', rows, cols_card, TMSLT_COLOR)
 

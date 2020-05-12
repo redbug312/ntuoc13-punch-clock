@@ -41,7 +41,7 @@
          <item>
           <layout class="QGridLayout" name="gridLayout" columnstretch="0,0">
            <item row="1" column="1">
-            <widget class="AlphabetSpinBox" name="cardSpinbox">
+            <widget class="AlphabetSpinBox" name="uiCardSpn">
              <property name="minimum">
               <number>1</number>
              </property>
@@ -51,17 +51,17 @@
             </widget>
            </item>
            <item row="1" column="0">
-            <widget class="QLabel" name="cardLabel">
+            <widget class="QLabel" name="uiCardLbl">
              <property name="text">
               <string>卡號欄位</string>
              </property>
              <property name="buddy">
-              <cstring>cardSpinbox</cstring>
+              <cstring>uiCardSpn</cstring>
              </property>
             </widget>
            </item>
            <item row="0" column="1">
-            <widget class="AlphabetSpinBox" name="idSpinbox">
+            <widget class="AlphabetSpinBox" name="uiIdSpn">
              <property name="minimum">
               <number>1</number>
              </property>
@@ -71,12 +71,12 @@
             </widget>
            </item>
            <item row="0" column="0">
-            <widget class="QLabel" name="idLabel">
+            <widget class="QLabel" name="uiIdLbl">
              <property name="text">
               <string>學號欄位</string>
              </property>
              <property name="buddy">
-              <cstring>idSpinbox</cstring>
+              <cstring>uiIdSpn</cstring>
              </property>
             </widget>
            </item>
@@ -94,7 +94,7 @@
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_4">
            <item>
-            <widget class="QLineEdit" name="scanLineEdit">
+            <widget class="QLineEdit" name="uiScanEdit">
              <property name="enabled">
               <bool>false</bool>
              </property>
@@ -124,24 +124,24 @@
            <item>
             <layout class="QGridLayout" name="gridLayout_5">
              <item row="1" column="1">
-              <widget class="QSpinBox" name="totalSpinbox"/>
+              <widget class="QSpinBox" name="uiTotalSpn"/>
              </item>
              <item row="1" column="0">
-              <widget class="QLabel" name="totalLabel">
+              <widget class="QLabel" name="uiTotalLbl">
                <property name="text">
                 <string>應到人數</string>
                </property>
               </widget>
              </item>
              <item row="0" column="0">
-              <widget class="QLabel" name="lateLabel">
+              <widget class="QLabel" name="uiLateLbl">
                <property name="text">
                 <string>遲到時間</string>
                </property>
               </widget>
              </item>
              <item row="0" column="1">
-              <widget class="QTimeEdit" name="lateTimeEdit">
+              <widget class="QTimeEdit" name="uiLateTime">
                <property name="displayFormat">
                 <string>hh:mm</string>
                </property>
@@ -150,7 +150,7 @@
             </layout>
            </item>
            <item>
-            <widget class="QCheckBox" name="overwriteCheckbox">
+            <widget class="QCheckBox" name="uiOverwriteChk">
              <property name="text">
               <string>寫入學生證卡號</string>
              </property>
@@ -170,7 +170,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QCheckBox" name="panelCheckbox">
+            <widget class="QCheckBox" name="uiPanelChk">
              <property name="text">
               <string>顯示掃描資料</string>
              </property>
@@ -210,14 +210,14 @@
          <number>6</number>
         </property>
         <item>
-         <widget class="QPushButton" name="fileOpenButton">
+         <widget class="QPushButton" name="uiFileOpenBtn">
           <property name="text">
            <string>開啟簽到名單(&amp;O)</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="fileSaveButton">
+         <widget class="QPushButton" name="uiFileSaveBtn">
           <property name="text">
            <string>儲存簽到結果(&amp;S)</string>
           </property>
@@ -243,7 +243,7 @@
          </attribute>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <widget class="SpreadSheetFrame" name="checkInSheet"/>
+           <widget class="SpreadSheetFrame" name="uiCheckInFrame"/>
           </item>
          </layout>
         </widget>
@@ -258,7 +258,7 @@
          <number>2</number>
         </property>
         <item>
-         <widget class="QProgressBar" name="checkInProgressbar">
+         <widget class="QProgressBar" name="uiCheckInProg">
           <property name="maximumSize">
            <size>
             <width>16777215</width>
@@ -302,15 +302,15 @@
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>idSpinbox</tabstop>
-  <tabstop>cardSpinbox</tabstop>
-  <tabstop>scanLineEdit</tabstop>
-  <tabstop>lateTimeEdit</tabstop>
-  <tabstop>totalSpinbox</tabstop>
-  <tabstop>overwriteCheckbox</tabstop>
-  <tabstop>panelCheckbox</tabstop>
-  <tabstop>fileOpenButton</tabstop>
-  <tabstop>fileSaveButton</tabstop>
+  <tabstop>uiIdSpn</tabstop>
+  <tabstop>uiCardSpn</tabstop>
+  <tabstop>uiScanEdit</tabstop>
+  <tabstop>uiLateTime</tabstop>
+  <tabstop>uiTotalSpn</tabstop>
+  <tabstop>uiOverwriteChk</tabstop>
+  <tabstop>uiPanelChk</tabstop>
+  <tabstop>uiFileOpenBtn</tabstop>
+  <tabstop>uiFileSaveBtn</tabstop>
   <tabstop>tabWidget</tabstop>
  </tabstops>
  <resources/>
