@@ -20,15 +20,15 @@ class AppContext(ApplicationContext):
         return self.get_resource('window.ui')
 
     @cached_property
-    def placeholderUi(self):
+    def uiPlaceholder(self):
         return self.get_resource('placeholder.ui')
 
     @cached_property
-    def panelUi(self):
+    def uiPanel(self):
         return self.get_resource('panel.ui')
 
     @cached_property
-    def excelPixmap(self):
+    def pixmapExcel(self):
         return QPixmap(self.get_resource('microsoft-excel.png'))
 
 

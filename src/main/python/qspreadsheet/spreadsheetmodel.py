@@ -39,7 +39,7 @@ class SpreadSheetModel(QAbstractTableModel):
             wb.active.append(row)
         wb.save(path)
 
-    def range(self, name, rows, cols, color):
+    def updateRange(self, name, rows, cols, color):
         if name in self.ranges:
             r = self.ranges[name]
             self.dataChanged.emit(*r.corners())

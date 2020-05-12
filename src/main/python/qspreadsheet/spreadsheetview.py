@@ -15,22 +15,22 @@ class SpreadSheetView(QTableView, DropableWidget):
 class SpreadSheetFrame(QFrame, DropableWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.frame = QFrame()
+        self.placeholder = QFrame()
         self.view = QTableView()
 
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.frame)
+        layout.addWidget(self.placeholder)
         layout.addWidget(self.view)
         self.setLayout(layout)
         self.overlay()
 
     def overlay(self):
-        self.frame.show()
+        self.placeholder.show()
         self.view.hide()
 
     def display(self):
-        self.frame.hide()
+        self.placeholder.hide()
         self.view.show()
 
     def isFileDropable(self, url):
