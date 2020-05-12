@@ -20,13 +20,12 @@ class MainWindow(QMainWindow):
         super().__init__(parent)
         uic.loadUi(context.ui, self)
         uic.loadUi(context.placeholderUi, self.checkInSheet.frame)
-        self.checkInSheet.frame.iconLabel.setPixmap(context.excelPixmap)
-        self.checkInSheet.frame.textLabel.setText('回應表格未開啟')
         self.lateTimeEdit.setTime(QTime.currentTime())
 
         self.sheet = CheckInTableModel()
+        self.checkInSheet.frame.iconLabel.setPixmap(context.excelPixmap)
+        self.checkInSheet.frame.textLabel.setText('尚未開啟簽到名單')
         self.checkInSheet.view.setModel(self.sheet)
-        self.checkInSheet.view.setSortingEnabled(False)
         self.checkInSheet.view.setTabKeyNavigation(False)
         self.checkInSheet.view.setSelectionMode(QAbstractItemView.NoSelection)
 
