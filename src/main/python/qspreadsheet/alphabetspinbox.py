@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
-from functools import reduce
 from PyQt5.QtGui import QValidator
-from PyQt5.QtWidgets import QSpinBox, QFrame, QTableView
+from PyQt5.QtWidgets import QSpinBox
 
-from qspreadsheet.mixins import DropableWidget
+from .utils import column_ord, column_chr
+
+
+MAX_COLUMN = column_ord('ZZ')
 
 
 class AlphabetSpinBox(QSpinBox):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setMaximum(702)  # allow columns from `A` to `ZZ`
+        self.setMaximum(MAX_COLUMN)
 
     def validate(self, text, pos):
         # Equivalent to QRegExp('[A-Za-z]{1,2}')
@@ -19,11 +21,7 @@ class AlphabetSpinBox(QSpinBox):
         return result, text.upper(), pos
 
     def valueFromText(self, text):
-        return reduce(lambda x, y: x * 26 + (ord(y) - 64), text, 0)
+        return column_ord(text)
 
     def textFromValue(self, num):
-        name = ''
-        while num:
-            num, rem = divmod(num - 1, 26)
-            name = chr(65 + rem) + name
-        return name
+        return column_chr(num)

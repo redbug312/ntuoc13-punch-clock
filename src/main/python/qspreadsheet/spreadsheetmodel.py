@@ -6,10 +6,10 @@ from PyQt5.QtCore import Qt, QAbstractTableModel, QModelIndex
 from PyQt5.QtGui import QColor
 
 from .utils import column_chr
-from .qspreadsheetrange import QSpreadSheetRange
+from .spreadsheetrange import SpreadSheetRange
 
 
-class QSpreadSheetModel(QAbstractTableModel):
+class SpreadSheetModel(QAbstractTableModel):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.df = pd.DataFrame()
@@ -43,7 +43,7 @@ class QSpreadSheetModel(QAbstractTableModel):
         if name in self.ranges:
             r = self.ranges[name]
             self.dataChanged.emit(*r.corners())
-        r = QSpreadSheetRange(self, rows, cols, color)
+        r = SpreadSheetRange(self, rows, cols, color)
         self.dataChanged.emit(*r.corners())
         self.ranges[name] = r
 

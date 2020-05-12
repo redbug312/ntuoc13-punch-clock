@@ -2,10 +2,10 @@
 import pandas as pd
 from datetime import datetime
 
-from qspreadsheet import QSpreadSheetModel
+from qspreadsheet import SpreadSheetModel
 
 
-class CheckInTableModel(QSpreadSheetModel):
+class CheckInTableModel(SpreadSheetModel):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.latest = None

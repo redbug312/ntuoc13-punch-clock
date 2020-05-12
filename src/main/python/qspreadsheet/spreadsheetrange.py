@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-class QSpreadSheetRange:
+class SpreadSheetRange:
     def __init__(self, sheet, rows=(0, 0), cols=(0, 0), color=None):
         self.sheet = sheet
         self.rows = rows[0] - 1, rows[1]

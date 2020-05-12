@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-from PyQt5.QtWidgets import QTableView, QWidget, QFrame, QHBoxLayout
+from PyQt5.QtWidgets import QTableView, QFrame, QHBoxLayout
 
 from .mixins import DropableWidget
 
 
-class QSpreadSheetView(QTableView, DropableWidget):
+class SpreadSheetView(QTableView, DropableWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -12,13 +12,14 @@ class QSpreadSheetView(QTableView, DropableWidget):
         return url.endswith('.xlsx')
 
 
-class QSpreadSheetFrameView(QWidget, DropableWidget):
+class SpreadSheetFrame(QFrame, DropableWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.frame = QFrame()
         self.view = QTableView()
 
         layout = QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.frame)
         layout.addWidget(self.view)
         self.setLayout(layout)
