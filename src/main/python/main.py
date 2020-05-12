@@ -29,7 +29,7 @@ class AppContext(ApplicationContext):
 
     @cached_property
     def excelPixmap(self):
-        return QPixmap(self.get_resource('excel.png'))
+        return QPixmap(self.get_resource('microsoft-excel.png'))
 
 
 if __name__ == '__main__':

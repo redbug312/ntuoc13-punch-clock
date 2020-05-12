@@ -9,7 +9,6 @@ from PyQt5.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QAbstractItem
 from models import CheckInTableModel
 
 
-DEFAULT_COLOR = QColor('white')
 LATEST_COLOR = QColor(240, 198, 116, 50)
 INTVW_COLOR = QColor(178, 148, 187, 50)
 TMSLT_COLOR = QColor(138, 190, 183, 50)
@@ -20,14 +19,15 @@ class MainWindow(QMainWindow):
     def __init__(self, context, parent=None):
         super().__init__(parent)
         uic.loadUi(context.ui, self)
-        uic.loadUi(context.placeholderUi, self.placeholderFrame)
-        self.placeholderFrame.setOverlay(self.checkInTableView)
-        self.placeholderFrame.setContent(context.excelPixmap, '回應表格未開啟')
+        uic.loadUi(context.placeholderUi, self.checkInSheet.frame)
         self.lateTimeEdit.setTime(QTime.currentTime())
 
         self.sheet = CheckInTableModel()
-        self.checkInTableView.setModel(self.sheet)
-        self.checkInTableView.setSortingEnabled(False)
+        self.checkInSheet.frame.iconLabel.setPixmap(context.excelPixmap)
+        self.checkInSheet.frame.textLabel.setText('尚未開啟簽到名單')
+        self.checkInSheet.view.setModel(self.sheet)
+        self.checkInSheet.view.setTabKeyNavigation(False)
+        self.checkInSheet.view.setSelectionMode(QAbstractItemView.NoSelection)
 
         self.panel = PanelWindow(context, parent=self)
 
@@ -36,8 +36,7 @@ class MainWindow(QMainWindow):
             self.fileSaveButton.clicked:       self.saveXlsx,
             self.scanLineEdit.returnPressed:   self.scanCard,
             self.panelCheckbox.stateChanged:   lambda s: self.panel.setVisible(s == Qt.Checked),
-            self.placeholderFrame.dropped:     lambda f: self.openXlsx(f),
-            self.checkInTableView.dropped:     lambda f: self.openXlsx(f),
+            self.checkInSheet.dropped:         lambda f: self.openXlsx(f),
             self.idSpinbox.valueChanged:       lambda: self.updateFromSpreadsheet(4),
             self.cardSpinbox.valueChanged:     lambda: self.updateFromSpreadsheet(4),
             self.totalSpinbox.valueChanged:    lambda v: self.checkInProgressbar.setMaximum(v),
@@ -55,9 +54,9 @@ class MainWindow(QMainWindow):
                 return False
             xlsx = dialog.selectedFiles()[0]
             # xlsx = 'oc13.xlsx'
-        self.sheet.populate(xlsx)
+        self.sheet.open(xlsx)
         # View
-        self.placeholderFrame.hide()
+        self.checkInSheet.display()
         self.lateTimeEdit.setDisabled(False)
         self.scanLineEdit.setDisabled(False)
         self.scanLineEdit.setFocus()
@@ -84,7 +83,7 @@ class MainWindow(QMainWindow):
             # xlsx = 'output.xlsx'
         if not xlsx.endswith('.xlsx'):
             xlsx += '.xlsx'
-        self.sheet.export(xlsx)
+        self.sheet.save(xlsx)
 
     @slot()
     def scanCard(self):
@@ -107,15 +106,15 @@ class MainWindow(QMainWindow):
             self.sheet.latest = None
             return
         # Highlight latest checked-in one
-        self.lateTimeEdit.setDisabled(True)
-        self.checkInProgressbar.setValue(sum(self.sheet.frame.iloc[1:].checked))
+        # self.lateTimeEdit.setDisabled(True)
+        self.checkInProgressbar.setValue(sum(self.sheet.df.iloc[1:].checked))
         info = self.sheet.getLatestInfo()
         print(info)
         if not info.empty:
             row = info.index[0] + 1
-            self.sheet.setRange('latest', (row, ) * 2, (1, self.sheet.columnCount()), LATEST_COLOR)
-            focus = self.checkInTableView.model().index(row, 0)
-            self.checkInTableView.scrollTo(focus, QAbstractItemView.PositionAtCenter)
+            self.sheet.range('latest', (row, row), (1, self.sheet.columnCount()), LATEST_COLOR)
+            focus = self.checkInSheet.view.model().index(row, 0)
+            self.checkInSheet.view.scrollTo(focus, QAbstractItemView.PositionAtCenter)
             self.panel.setSuccessMessage(info, deadline)
         else:
             self.panel.setFailureMessage(scan, '號碼不存在')
@@ -137,8 +136,8 @@ class MainWindow(QMainWindow):
             rows = 2, self.sheet.rowCount()
             cols_id = (self.idSpinbox.value(), ) * 2
             cols_card = (self.cardSpinbox.value(), ) * 2
-            self.sheet.setRange('interviewee', rows, cols_id, INTVW_COLOR)
-            self.sheet.setRange('timeslot', rows, cols_card, TMSLT_COLOR)
+            self.sheet.range('interviewee', rows, cols_id, INTVW_COLOR)
+            self.sheet.range('timeslot', rows, cols_card, TMSLT_COLOR)
 
 
 class PanelWindow(QMainWindow):

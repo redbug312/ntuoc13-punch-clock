@@ -243,20 +243,7 @@
          </attribute>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <widget class="DropableTableView" name="checkInTableView">
-            <property name="tabKeyNavigation">
-             <bool>false</bool>
-            </property>
-            <property name="selectionMode">
-             <enum>QAbstractItemView::NoSelection</enum>
-            </property>
-            <property name="sortingEnabled">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="DropableFrame" name="placeholderFrame"/>
+           <widget class="SpreadSheetFrame" name="checkInSheet"/>
           </item>
          </layout>
         </widget>
@@ -305,21 +292,13 @@
   <customwidget>
    <class>AlphabetSpinBox</class>
    <extends>QSpinBox</extends>
-   <header location="global">widgets.h</header>
+   <header location="global">qspreadsheet/alphabetspinbox.h</header>
   </customwidget>
   <customwidget>
-   <class>DropableFrame</class>
+   <class>SpreadSheetFrame</class>
    <extends>QFrame</extends>
-   <header location="global">widgets.h</header>
+   <header location="global">qspreadsheet/spreadsheetview.h</header>
    <container>1</container>
-   <slots>
-    <signal>dropped(QString)</signal>
-   </slots>
-  </customwidget>
-  <customwidget>
-   <class>DropableTableView</class>
-   <extends>QTableView</extends>
-   <header location="global">widgets.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
@@ -333,7 +312,6 @@
   <tabstop>fileOpenButton</tabstop>
   <tabstop>fileSaveButton</tabstop>
   <tabstop>tabWidget</tabstop>
-  <tabstop>checkInTableView</tabstop>
  </tabstops>
  <resources/>
  <connections/>
