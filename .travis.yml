@@ -16,7 +16,7 @@ jobs:
     deploy:
       provider: releases
       token: ${GITHUB_TOKEN}
-      file: target/ntuoc13-check-in-machine.deb
+      file: target/ntuoc13-punch-clock.deb
       edge: true
       on: {tags: true}
   - os: windows
@@ -28,11 +28,11 @@ jobs:
     - python -m venv env
     - source env/Scripts/activate
     after_success:
-    - mv target/ntuoc13-check-in-machineSetup.exe
-         target/ntuoc13-check-in-machine-installer.exe
+    - mv target/ntuoc13-punch-clockSetup.exe
+         target/ntuoc13-punch-clock-installer.exe
     deploy:
       provider: releases
       token: ${GITHUB_TOKEN}
-      file: target/ntuoc13-check-in-machine-installer.exe
+      file: target/ntuoc13-punch-clock-installer.exe
       edge: true
       on: {tags: true}
