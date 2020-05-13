@@ -4,9 +4,7 @@ from datetime import date, datetime
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, QTime, pyqtSlot as slot
 from PyQt5.QtGui import QColor, QFont, QPalette
-from PyQt5.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QAbstractItemView
-
-from models import TimesheetModel
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QAbstractItemView, QTableView, QFrame
 
 
 LATEST_COLOR  = QColor(240, 198, 116, 50)
@@ -17,18 +15,23 @@ NFCCODE_COLOR = QColor(138, 190, 183, 50)
 class MainWindow(QMainWindow):
     def __init__(self, context, parent=None):
         super().__init__(parent)
-        self.sheet = TimesheetModel()
-        self.panel = PanelWindow(context, parent=self)
+        self.sheet = context.timesheet
+        self.panel = context.panel
 
         uic.loadUi(context.ui, self)
-        uic.loadUi(context.uiPlaceholder, self.uiTimesheetFrame.placeholder)
         self.uiDeadlineTime.setTime(QTime.currentTime())
 
-        self.uiTimesheetFrame.placeholder.uiIconLbl.setPixmap(context.pixmapExcel)
-        self.uiTimesheetFrame.placeholder.uiTextLbl.setText('尚未開啟簽到名單')
-        self.uiTimesheetFrame.view.setModel(self.sheet)
-        self.uiTimesheetFrame.view.setTabKeyNavigation(False)
-        self.uiTimesheetFrame.view.setSelectionMode(QAbstractItemView.NoSelection)
+        placeholder, tableview = QFrame(), QTableView()
+        uic.loadUi(context.uiPlaceholder, placeholder)
+        placeholder.uiIconLbl.setPixmap(context.pixmapExcel)
+        placeholder.uiTextLbl.setText('尚未開啟簽到名單')
+
+        tableview.setModel(self.sheet)
+        tableview.setTabKeyNavigation(False)
+        tableview.setSelectionMode(QAbstractItemView.NoSelection)
+
+        self.uiTimesheetFrame.contain(placeholder, tableview)
+        self.uiTimesheetFrame.overlay()
 
         self.connects = [sig.connect(slt) for sig, slt in {
             self.uiFileOpenBtn.clicked:         self.openXlsx,

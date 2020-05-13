@@ -249,7 +249,7 @@
          </attribute>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <widget class="SpreadSheetFrame" name="uiTimesheetFrame"/>
+           <widget class="PlaceholderFrame" name="uiTimesheetFrame"/>
           </item>
          </layout>
         </widget>
@@ -304,9 +304,9 @@
    <header location="global">qspreadsheet/alphabetspinbox.h</header>
   </customwidget>
   <customwidget>
-   <class>SpreadSheetFrame</class>
+   <class>PlaceholderFrame</class>
    <extends>QFrame</extends>
-   <header location="global">qspreadsheet/spreadsheetview.h</header>
+   <header location="global">widgets.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

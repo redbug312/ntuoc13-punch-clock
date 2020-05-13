@@ -3,7 +3,8 @@ import sys
 from fbs_runtime.application_context.PyQt5 import ApplicationContext, cached_property
 from PyQt5.QtGui import QPixmap
 
-from window import MainWindow
+from window import MainWindow, PanelWindow
+from models import TimesheetModel
 
 
 class AppContext(ApplicationContext):
@@ -14,6 +15,14 @@ class AppContext(ApplicationContext):
     @cached_property
     def window(self):
         return MainWindow(self)
+
+    @cached_property
+    def panel(self):
+        return PanelWindow(self)
+
+    @cached_property
+    def timesheet(self):
+        return TimesheetModel()
 
     @cached_property
     def ui(self):
