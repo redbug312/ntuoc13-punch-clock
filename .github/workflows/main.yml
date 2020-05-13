@@ -20,7 +20,7 @@ jobs:
       uses: actions/setup-ruby@v1
       with:
         ruby-version: 2.7
-    - name: Install dependencies
+    - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements/base.txt
@@ -31,3 +31,29 @@ jobs:
       run: |
         gem install --no-document fpm
         fbs installer
+
+  build-windows:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.6
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.6
+    - name: Install Chocholatey dependencies
+      uses: crazy-max/ghaction-chocolatey@v1
+      with:
+        args: install nsis vcredist2010 vcredist2012 vcredist2015
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements/base.txt
+    - name: Create standalone executable
+      run: |
+        fbs freeze
+    - name: Create installer
+      run: |
+        fbs installer
+        mv target/ntuoc13-punch-clockSetup.exe target/ntuoc13-punch-clock-installer.exe
