@@ -27,8 +27,9 @@ class MainWindow(QMainWindow):
         tableview.setTabKeyNavigation(False)
         tableview.setSelectionMode(QAbstractItemView.NoSelection)
 
-        self.uiTimesheetFrame.contain(placeholder, tableview)
         self.uiDeadlineTime.setTime(QTime.currentTime())
+        self.uiTimesheetFrame.setPlaceholder(placeholder)
+        self.uiTimesheetFrame.setView(tableview)
         self.uiTimesheetFrame.overlay()
 
         self.connects = [sig.connect(slt) for sig, slt in {
@@ -116,9 +117,9 @@ class MainWindow(QMainWindow):
         print(info)
         if not info.empty:
             row = info.index[0] + 1
-            self.uiTimesheetFrame.view.scrollTo(focus, QAbstractItemView.PositionAtCenter)
             timesheet.updateRange('latest', (row, row), (1, timesheet.columnCount()), LATEST_COLOR)
             focus = timesheet.index(row, 0)
+            self.uiTimesheetFrame.view().scrollTo(focus, QAbstractItemView.PositionAtCenter)
             panel.setOkayMsg(info, deadline)
         else:
             panel.setFailMsg(scan, '號碼不存在')
