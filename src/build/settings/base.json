@@ -1,5 +1,5 @@
 {
-    "app_name": "ntuoc13-check-in-machine",
+    "app_name": "ntuoc13-punch-clock",
     "author": "RedBug312",
     "main_module": "src/main/python/main.py",
     "version": "0.0.1"

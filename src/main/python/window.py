@@ -6,40 +6,39 @@ from PyQt5.QtCore import Qt, QTime, pyqtSlot as slot
 from PyQt5.QtGui import QColor, QFont, QPalette
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QAbstractItemView
 
-from models import CheckInTableModel
+from models import TimesheetModel
 
 
-LATEST_COLOR = QColor(240, 198, 116, 50)
-INTVW_COLOR = QColor(178, 148, 187, 50)
-TMSLT_COLOR = QColor(138, 190, 183, 50)
-ERROR_COLOR = QColor(204, 102, 102, 50)
+LATEST_COLOR  = QColor(240, 198, 116, 50)
+BARCODE_COLOR = QColor(178, 148, 187, 50)
+NFCCODE_COLOR = QColor(138, 190, 183, 50)
 
 
 class MainWindow(QMainWindow):
     def __init__(self, context, parent=None):
         super().__init__(parent)
-        uic.loadUi(context.ui, self)
-        uic.loadUi(context.placeholderUi, self.checkInSheet.frame)
-        self.lateTimeEdit.setTime(QTime.currentTime())
-
-        self.sheet = CheckInTableModel()
-        self.checkInSheet.frame.iconLabel.setPixmap(context.excelPixmap)
-        self.checkInSheet.frame.textLabel.setText('尚未開啟簽到名單')
-        self.checkInSheet.view.setModel(self.sheet)
-        self.checkInSheet.view.setTabKeyNavigation(False)
-        self.checkInSheet.view.setSelectionMode(QAbstractItemView.NoSelection)
-
+        self.sheet = TimesheetModel()
         self.panel = PanelWindow(context, parent=self)
 
+        uic.loadUi(context.ui, self)
+        uic.loadUi(context.uiPlaceholder, self.uiTimesheetFrame.placeholder)
+        self.uiDeadlineTime.setTime(QTime.currentTime())
+
+        self.uiTimesheetFrame.placeholder.uiIconLbl.setPixmap(context.pixmapExcel)
+        self.uiTimesheetFrame.placeholder.uiTextLbl.setText('尚未開啟簽到名單')
+        self.uiTimesheetFrame.view.setModel(self.sheet)
+        self.uiTimesheetFrame.view.setTabKeyNavigation(False)
+        self.uiTimesheetFrame.view.setSelectionMode(QAbstractItemView.NoSelection)
+
         self.connects = [sig.connect(slt) for sig, slt in {
-            self.fileOpenButton.clicked:       self.openXlsx,
-            self.fileSaveButton.clicked:       self.saveXlsx,
-            self.scanLineEdit.returnPressed:   self.scanCard,
-            self.panelCheckbox.stateChanged:   lambda s: self.panel.setVisible(s == Qt.Checked),
-            self.checkInSheet.dropped:         lambda f: self.openXlsx(f),
-            self.idSpinbox.valueChanged:       lambda: self.updateFromSpreadsheet(4),
-            self.cardSpinbox.valueChanged:     lambda: self.updateFromSpreadsheet(4),
-            self.totalSpinbox.valueChanged:    lambda v: self.checkInProgressbar.setMaximum(v),
+            self.uiFileOpenBtn.clicked:         self.openXlsx,
+            self.uiFileSaveBtn.clicked:         self.saveXlsx,
+            self.uiInputEdit.returnPressed:     self.scanCard,
+            self.uiPanelChk.stateChanged:       lambda s: self.panel.setVisible(s == Qt.Checked),
+            self.uiTimesheetFrame.dropped:      lambda f: self.openXlsx(f),
+            self.uiBarColumnSpn.valueChanged:   lambda: self.updateSpreadSheet(4),
+            self.uiNfcColumnSpn.valueChanged:   lambda: self.updateSpreadSheet(4),
+            self.uiTotalSpn.valueChanged:       lambda v: self.uiPunchStatProg.setMaximum(v),
         }.items()]
 
     @slot()
@@ -56,17 +55,17 @@ class MainWindow(QMainWindow):
             # xlsx = 'oc13.xlsx'
         self.sheet.open(xlsx)
         # View
-        self.checkInSheet.display()
-        self.lateTimeEdit.setDisabled(False)
-        self.scanLineEdit.setDisabled(False)
-        self.scanLineEdit.setFocus()
-        self.updateFromSpreadsheet()
+        self.uiTimesheetFrame.display()
+        self.uiDeadlineTime.setDisabled(False)
+        self.uiInputEdit.setDisabled(False)
+        self.uiInputEdit.setFocus()
+        self.updateSpreadSheet()
         # Spinbox backgrounds
-        palette = self.idSpinbox.palette()
-        palette.setColor(QPalette.Base, INTVW_COLOR.lighter())
-        self.idSpinbox.setPalette(palette)
-        palette.setColor(QPalette.Base, TMSLT_COLOR.lighter())
-        self.cardSpinbox.setPalette(palette)
+        palette = self.uiBarColumnSpn.palette()
+        palette.setColor(QPalette.Base, BARCODE_COLOR.lighter())
+        self.uiBarColumnSpn.setPalette(palette)
+        palette.setColor(QPalette.Base, NFCCODE_COLOR.lighter())
+        self.uiNfcColumnSpn.setPalette(palette)
         self.statusbar.showMessage('載入 %d 列資料。' % self.sheet.rowCount())
 
     @slot()
@@ -87,80 +86,80 @@ class MainWindow(QMainWindow):
 
     @slot()
     def scanCard(self):
-        scan = self.scanLineEdit.text()
-        self.scanLineEdit.clear()
+        scan = self.uiInputEdit.text()
+        self.uiInputEdit.clear()
         # Update spreadsheet by scanned
-        deadline_time = self.lateTimeEdit.time().toPyTime()
+        deadline_time = self.uiDeadlineTime.time().toPyTime()
         deadline = datetime.combine(date.today(), deadline_time)
         if re.fullmatch(r'[A-Za-z]\d{2}\w\d{5}', scan):  # manually inputed
-            self.sheet.checkin(self.idSpinbox.value(), scan.upper(), deadline)
+            self.sheet.punch(self.uiBarColumnSpn.value(), scan.upper(), deadline)
         elif re.fullmatch(r'[A-Za-z]\d{2}\w\d{6}', scan):  # scan barcode
-            self.sheet.checkin(self.idSpinbox.value(), scan[:-1].upper(), deadline)
+            self.sheet.punch(self.uiBarColumnSpn.value(), scan[:-1].upper(), deadline)
         elif re.fullmatch(r'\d{10}', scan):  # scan rfc code
-            if self.overwriteCheckbox.isChecked():
-                self.sheet.fillCard(self.cardSpinbox.value(), scan)
+            if self.uiOverwriteChk.isChecked():
+                self.sheet.fillCard(self.uiNfcColumnSpn.value(), scan)
             else:
-                self.sheet.checkin(self.cardSpinbox.value(), scan, deadline)
+                self.sheet.punch(self.uiNfcColumnSpn.value(), scan, deadline)
         else:
-            self.panel.setFailureMessage(scan, '號碼格式錯誤')
-            self.sheet.latest = None
+            self.panel.setFailMsg(scan, '號碼格式錯誤')
+            self.sheet.latest_person = None
             return
         # Highlight latest checked-in one
         # self.lateTimeEdit.setDisabled(True)
-        self.checkInProgressbar.setValue(sum(self.sheet.df.iloc[1:].checked))
-        info = self.sheet.getLatestInfo()
+        self.uiPunchStatProg.setValue(sum(self.sheet.df.iloc[1:].checked))
+        info = self.sheet.latest()
         print(info)
         if not info.empty:
             row = info.index[0] + 1
-            self.sheet.range('latest', (row, row), (1, self.sheet.columnCount()), LATEST_COLOR)
-            focus = self.checkInSheet.view.model().index(row, 0)
-            self.checkInSheet.view.scrollTo(focus, QAbstractItemView.PositionAtCenter)
-            self.panel.setSuccessMessage(info, deadline)
+            self.sheet.updateRange('latest', (row, row), (1, self.sheet.columnCount()), LATEST_COLOR)
+            focus = self.uiTimesheetFrame.view.model().index(row, 0)
+            self.uiTimesheetFrame.view.scrollTo(focus, QAbstractItemView.PositionAtCenter)
+            self.panel.setOkayMsg(info, deadline)
         else:
-            self.panel.setFailureMessage(scan, '號碼不存在')
-            self.sheet.latest = None
+            self.panel.setFailMsg(scan, '號碼不存在')
+            self.sheet.latest_person = None
 
     @slot(int)
-    def updateFromSpreadsheet(self, flags=0b1111):
+    def updateSpreadSheet(self, flags=0b1111):
         # Update order determined by the spinboxes read/write operations
         if flags & 0b0001:  # shape of spreadsheet
             cols = self.sheet.columnCount()
-            self.idSpinbox.setMaximum(cols)
-            self.cardSpinbox.setMaximum(cols)
+            self.uiBarColumnSpn.setMaximum(cols)
+            self.uiNfcColumnSpn.setMaximum(cols)
             rows = self.sheet.rowCount()
-            self.totalSpinbox.setMaximum(rows - 1)
-            self.totalSpinbox.setValue(rows - 1)
+            self.uiTotalSpn.setMaximum(rows - 1)
+            self.uiTotalSpn.setValue(rows - 1)
         if flags & 0b0010:  # columnhead of spreadsheet
             pass
         if flags & 0b0100:  # ranges in spreadsheet
             rows = 2, self.sheet.rowCount()
-            cols_id = (self.idSpinbox.value(), ) * 2
-            cols_card = (self.cardSpinbox.value(), ) * 2
-            self.sheet.range('interviewee', rows, cols_id, INTVW_COLOR)
-            self.sheet.range('timeslot', rows, cols_card, TMSLT_COLOR)
+            cols_bar = (self.uiBarColumnSpn.value(), ) * 2
+            cols_nfc = (self.uiNfcColumnSpn.value(), ) * 2
+            self.sheet.updateRange('barcode', rows, cols_bar, BARCODE_COLOR)
+            self.sheet.updateRange('nfccode', rows, cols_nfc, NFCCODE_COLOR)
 
 
 class PanelWindow(QMainWindow):
     def __init__(self, context, parent=None):
         super().__init__(parent)
-        uic.loadUi(context.panelUi, self)
+        uic.loadUi(context.uiPanel, self)
 
         sans = QFont('IPAexGothic')
         sans.insertSubstitutions('sans', ['Noto Sans CJK TC', 'Microsoft YaHei'])
         sans.setStyleStrategy(QFont.PreferAntialias)
         self.setFont(sans)
 
-    def setFailureMessage(self, scan, reason):
-        self.infoLabel.setText(
+    def setFailMsg(self, scan, reason):
+        self.uiInfoLbl.setText(
             '<div align="center" style="font-size:36pt; color:#2E3436;">' +
             f'<p>掃描條碼失敗</p>' +
             f'<p style="font-size:18pt; color:#888A85;">{reason}：{scan}</p>' +
             '</div>'
         )
 
-    def setSuccessMessage(self, info, deadline):
+    def setOkayMsg(self, info, deadline):
         passed_mins = int((info.iloc[0, 2] - deadline).total_seconds() / 60)
-        self.infoLabel.setText(
+        self.uiInfoLbl.setText(
             '<div align="center" style="font-size:36pt; color:#2E3436;"><table>' +
             ''.join([f'<tr><td align="right">{k}：</td><td>{v}</td></tr>'
                      for k, v in info.iloc[0, 3:6].items()]) +
