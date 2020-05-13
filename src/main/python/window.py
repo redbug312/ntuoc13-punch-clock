@@ -15,29 +15,27 @@ NFCCODE_COLOR = QColor(138, 190, 183, 50)
 class MainWindow(QMainWindow):
     def __init__(self, context, parent=None):
         super().__init__(parent)
-        self.sheet = context.timesheet
-        self.panel = context.panel
-
-        uic.loadUi(context.ui, self)
-        self.uiDeadlineTime.setTime(QTime.currentTime())
+        self.context = context
 
         placeholder, tableview = QFrame(), QTableView()
+        uic.loadUi(context.ui, self)
         uic.loadUi(context.uiPlaceholder, placeholder)
+
         placeholder.uiIconLbl.setPixmap(context.pixmapExcel)
         placeholder.uiTextLbl.setText('尚未開啟簽到名單')
-
-        tableview.setModel(self.sheet)
+        tableview.setModel(context.timesheet)
         tableview.setTabKeyNavigation(False)
         tableview.setSelectionMode(QAbstractItemView.NoSelection)
 
         self.uiTimesheetFrame.contain(placeholder, tableview)
+        self.uiDeadlineTime.setTime(QTime.currentTime())
         self.uiTimesheetFrame.overlay()
 
         self.connects = [sig.connect(slt) for sig, slt in {
             self.uiFileOpenBtn.clicked:         self.openXlsx,
             self.uiFileSaveBtn.clicked:         self.saveXlsx,
             self.uiInputEdit.returnPressed:     self.scanCard,
-            self.uiPanelChk.stateChanged:       lambda s: self.panel.setVisible(s == Qt.Checked),
+            self.uiPanelChk.stateChanged:       lambda s: context.panel.setVisible(s == Qt.Checked),
             self.uiTimesheetFrame.dropped:      lambda f: self.openXlsx(f),
             self.uiBarColumnSpn.valueChanged:   lambda: self.updateSpreadSheet(4),
             self.uiNfcColumnSpn.valueChanged:   lambda: self.updateSpreadSheet(4),
@@ -47,6 +45,7 @@ class MainWindow(QMainWindow):
     @slot()
     @slot(str)
     def openXlsx(self, xlsx=None):
+        timesheet = self.context.timesheet
         if xlsx is None:
             dialog = QFileDialog()
             dialog.setAcceptMode(QFileDialog.AcceptOpen)
@@ -56,7 +55,7 @@ class MainWindow(QMainWindow):
                 return False
             xlsx = dialog.selectedFiles()[0]
             # xlsx = 'oc13.xlsx'
-        self.sheet.open(xlsx)
+        timesheet.open(xlsx)
         # View
         self.uiTimesheetFrame.display()
         self.uiDeadlineTime.setDisabled(False)
@@ -69,11 +68,12 @@ class MainWindow(QMainWindow):
         self.uiBarColumnSpn.setPalette(palette)
         palette.setColor(QPalette.Base, NFCCODE_COLOR.lighter())
         self.uiNfcColumnSpn.setPalette(palette)
-        self.statusbar.showMessage('載入 %d 列資料。' % self.sheet.rowCount())
+        self.statusbar.showMessage('載入 %d 列資料。' % timesheet.rowCount())
 
     @slot()
     @slot(str)
     def saveXlsx(self, xlsx=None):
+        timesheet = self.context.timesheet
         if xlsx is None:
             dialog = QFileDialog()
             dialog.setAcceptMode(QFileDialog.AcceptSave)
@@ -85,61 +85,64 @@ class MainWindow(QMainWindow):
             # xlsx = 'output.xlsx'
         if not xlsx.endswith('.xlsx'):
             xlsx += '.xlsx'
-        self.sheet.save(xlsx)
+        timesheet.save(xlsx)
 
     @slot()
     def scanCard(self):
+        timesheet = self.context.timesheet
+        panel = self.context.panel
         scan = self.uiInputEdit.text()
         self.uiInputEdit.clear()
         # Update spreadsheet by scanned
         deadline_time = self.uiDeadlineTime.time().toPyTime()
         deadline = datetime.combine(date.today(), deadline_time)
         if re.fullmatch(r'[A-Za-z]\d{2}\w\d{5}', scan):  # manually inputed
-            self.sheet.punch(self.uiBarColumnSpn.value(), scan.upper(), deadline)
+            timesheet.punch(self.uiBarColumnSpn.value(), scan.upper(), deadline)
         elif re.fullmatch(r'[A-Za-z]\d{2}\w\d{6}', scan):  # scan barcode
-            self.sheet.punch(self.uiBarColumnSpn.value(), scan[:-1].upper(), deadline)
+            timesheet.punch(self.uiBarColumnSpn.value(), scan[:-1].upper(), deadline)
         elif re.fullmatch(r'\d{10}', scan):  # scan rfc code
             if self.uiOverwriteChk.isChecked():
-                self.sheet.fillCard(self.uiNfcColumnSpn.value(), scan)
+                timesheet.fillCard(self.uiNfcColumnSpn.value(), scan)
             else:
-                self.sheet.punch(self.uiNfcColumnSpn.value(), scan, deadline)
+                timesheet.punch(self.uiNfcColumnSpn.value(), scan, deadline)
         else:
-            self.panel.setFailMsg(scan, '號碼格式錯誤')
-            self.sheet.latest_person = None
+            panel.setFailMsg(scan, '號碼格式錯誤')
+            timesheet.latest_person = None
             return
         # Highlight latest checked-in one
         # self.lateTimeEdit.setDisabled(True)
-        self.uiPunchStatProg.setValue(sum(self.sheet.df.iloc[1:].checked))
-        info = self.sheet.latest()
+        self.uiPunchStatProg.setValue(sum(timesheet.df.iloc[1:].checked))
+        info = timesheet.latest()
         print(info)
         if not info.empty:
             row = info.index[0] + 1
-            self.sheet.updateRange('latest', (row, row), (1, self.sheet.columnCount()), LATEST_COLOR)
-            focus = self.uiTimesheetFrame.view.model().index(row, 0)
             self.uiTimesheetFrame.view.scrollTo(focus, QAbstractItemView.PositionAtCenter)
-            self.panel.setOkayMsg(info, deadline)
+            timesheet.updateRange('latest', (row, row), (1, timesheet.columnCount()), LATEST_COLOR)
+            focus = timesheet.index(row, 0)
+            panel.setOkayMsg(info, deadline)
         else:
-            self.panel.setFailMsg(scan, '號碼不存在')
-            self.sheet.latest_person = None
+            panel.setFailMsg(scan, '號碼不存在')
+            timesheet.latest_person = None
 
     @slot(int)
     def updateSpreadSheet(self, flags=0b1111):
+        timesheet = self.context.timesheet
         # Update order determined by the spinboxes read/write operations
         if flags & 0b0001:  # shape of spreadsheet
-            cols = self.sheet.columnCount()
+            cols = timesheet.columnCount()
             self.uiBarColumnSpn.setMaximum(cols)
             self.uiNfcColumnSpn.setMaximum(cols)
-            rows = self.sheet.rowCount()
+            rows = timesheet.rowCount()
             self.uiTotalSpn.setMaximum(rows - 1)
             self.uiTotalSpn.setValue(rows - 1)
         if flags & 0b0010:  # columnhead of spreadsheet
             pass
         if flags & 0b0100:  # ranges in spreadsheet
-            rows = 2, self.sheet.rowCount()
+            rows = 2, timesheet.rowCount()
             cols_bar = (self.uiBarColumnSpn.value(), ) * 2
             cols_nfc = (self.uiNfcColumnSpn.value(), ) * 2
-            self.sheet.updateRange('barcode', rows, cols_bar, BARCODE_COLOR)
-            self.sheet.updateRange('nfccode', rows, cols_nfc, NFCCODE_COLOR)
+            timesheet.updateRange('barcode', rows, cols_bar, BARCODE_COLOR)
+            timesheet.updateRange('nfccode', rows, cols_nfc, NFCCODE_COLOR)
 
 
 class PanelWindow(QMainWindow):
