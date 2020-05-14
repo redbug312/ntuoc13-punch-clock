@@ -3,13 +3,14 @@ import re
 from datetime import date, datetime
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, QTime, pyqtSlot as slot
-from PyQt5.QtGui import QColor, QFont, QPalette
+from PyQt5.QtGui import QColor, QFont, QPalette, QFocusEvent
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QAbstractItemView, QTableView, QFrame
 
 
 LATEST_COLOR  = QColor(240, 198, 116, 50)
 BARCODE_COLOR = QColor(178, 148, 187, 50)
 NFCCODE_COLOR = QColor(138, 190, 183, 50)
+UNFOCUS_COLOR = QColor(204, 102, 102, 50)
 
 
 class MainWindow(QMainWindow):
@@ -36,12 +37,24 @@ class MainWindow(QMainWindow):
             self.uiFileOpenBtn.clicked:         self.openXlsx,
             self.uiFileSaveBtn.clicked:         self.saveXlsx,
             self.uiInputEdit.returnPressed:     self.scanCard,
-            self.uiPanelChk.stateChanged:       lambda s: context.panel.setVisible(s == Qt.Checked),
-            self.uiTimesheetFrame.dropped:      lambda f: self.openXlsx(f),
             self.uiBarColumnSpn.valueChanged:   lambda: self.updateSpreadSheet(4),
             self.uiNfcColumnSpn.valueChanged:   lambda: self.updateSpreadSheet(4),
-            self.uiTotalSpn.valueChanged:       lambda v: self.uiPunchStatProg.setMaximum(v),
+            self.uiInputEdit.focus:             lambda x: self.focusWarn(x),
+            self.uiPanelChk.stateChanged:       lambda x: context.panel.setVisible(x == Qt.Checked),
+            self.uiTimesheetFrame.dropped:      lambda x: self.openXlsx(x),
+            self.uiTotalSpn.valueChanged:       lambda x: self.uiPunchStatProg.setMaximum(x),
         }.items()]
+
+    @slot(QFocusEvent)
+    def focusWarn(self, focus):
+        panel = self.context.panel
+        palette = self.uiInputEdit.style().standardPalette()
+        if focus.gotFocus():
+            panel.setFailMsg('回到焦點', focus.reason())
+        else:
+            panel.setFailMsg('失去焦點', focus.reason())
+            palette.setColor(QPalette.Base, UNFOCUS_COLOR.lighter())
+        self.uiInputEdit.setPalette(palette)
 
     @slot()
     @slot(str)
@@ -59,14 +72,16 @@ class MainWindow(QMainWindow):
         timesheet.open(xlsx)
         # View
         self.uiTimesheetFrame.display()
-        self.uiDeadlineTime.setDisabled(False)
         self.uiInputEdit.setDisabled(False)
         self.uiInputEdit.setFocus()
+        self.uiDeadlineTime.setDisabled(False)
+        self.uiFileSaveBtn.setDisabled(False)
         self.updateSpreadSheet()
         # Spinbox backgrounds
         palette = self.uiBarColumnSpn.palette()
         palette.setColor(QPalette.Base, BARCODE_COLOR.lighter())
         self.uiBarColumnSpn.setPalette(palette)
+        palette = self.uiNfcColumnSpn.palette()
         palette.setColor(QPalette.Base, NFCCODE_COLOR.lighter())
         self.uiNfcColumnSpn.setPalette(palette)
         self.statusbar.showMessage('載入 %d 列資料。' % timesheet.rowCount())

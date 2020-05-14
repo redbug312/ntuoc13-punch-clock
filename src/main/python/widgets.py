@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
-from PyQt5.QtWidgets import QFrame, QHBoxLayout
+from PyQt5.QtWidgets import QFrame, QHBoxLayout, QLineEdit
 
-from mixins import DropableWidget
+from mixins import FocusAwareWidget, DropableWidget
+
+
+class ScanInputLineEdit(QLineEdit, FocusAwareWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
 
 
 class PlaceholderFrame(QFrame, DropableWidget):

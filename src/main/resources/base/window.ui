@@ -94,7 +94,7 @@
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_4">
            <item>
-            <widget class="QLineEdit" name="uiInputEdit">
+            <widget class="ScanInputLineEdit" name="uiInputEdit">
              <property name="enabled">
               <bool>false</bool>
              </property>
@@ -308,6 +308,11 @@
    <extends>QFrame</extends>
    <header location="global">widgets.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ScanInputLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header location="global">widgets.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
