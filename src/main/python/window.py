@@ -115,9 +115,9 @@ class MainWindow(QMainWindow):
         deadline_time = self.uiDeadlineTime.time().toPyTime()
         deadline = datetime.combine(date.today(), deadline_time)
         if re.fullmatch(r'[A-Za-z]\d{2}\w\d{5}', scan):  # manually inputed
-            matches = timesheet.punch(self.uiBarColumnSpn.value(), scan.upper(), deadline)
+            matches = timesheet.punch(self.uiBarColumnSpn.value(), scan, deadline)
         elif re.fullmatch(r'[A-Za-z]\d{2}\w\d{6}', scan):  # scan barcode
-            matches = timesheet.punch(self.uiBarColumnSpn.value(), scan[:-1].upper(), deadline)
+            matches = timesheet.punch(self.uiBarColumnSpn.value(), scan[:-1], deadline)
         elif re.fullmatch(r'\d{10}', scan):  # scan rfc code
             if self.uiOverwriteChk.isChecked():
                 timesheet.fillCard(self.uiNfcColumnSpn.value(), scan)

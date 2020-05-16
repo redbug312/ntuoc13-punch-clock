@@ -36,7 +36,8 @@ class TimesheetModel(SpreadSheetModel):
         return self.df.loc[boolmask].rename(columns=columnhead)
 
     def _lookup_boolmask(self, icol, target):
-        return self.df.iloc[:, icol - 1] == target
+        # Case-insensitive, for barcode lookups only
+        return self.df.iloc[:, icol - 1].str.upper() == target.upper()
 
     def fillCard(self, icol, card):
         column = self.df.columns[icol - 1]
