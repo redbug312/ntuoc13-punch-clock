@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 import re
+import pypugjs
 from datetime import date, datetime
+from inspect import cleandoc
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, QTime, pyqtSlot as slot
-from PyQt5.QtGui import QColor, QFont, QPalette
+from PyQt5.QtGui import QColor, QFont, QPalette, QFocusEvent
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QAbstractItemView, QTableView, QFrame
 
 
 LATEST_COLOR  = QColor(240, 198, 116, 50)
 BARCODE_COLOR = QColor(178, 148, 187, 50)
 NFCCODE_COLOR = QColor(138, 190, 183, 50)
+UNFOCUS_COLOR = QColor(204, 102, 102, 50)
 
 
 class MainWindow(QMainWindow):
@@ -36,11 +39,12 @@ class MainWindow(QMainWindow):
             self.uiFileOpenBtn.clicked:         self.openXlsx,
             self.uiFileSaveBtn.clicked:         self.saveXlsx,
             self.uiInputEdit.returnPressed:     self.scanCard,
-            self.uiPanelChk.stateChanged:       lambda s: context.panel.setVisible(s == Qt.Checked),
-            self.uiTimesheetFrame.dropped:      lambda f: self.openXlsx(f),
             self.uiBarColumnSpn.valueChanged:   lambda: self.updateSpreadSheet(4),
             self.uiNfcColumnSpn.valueChanged:   lambda: self.updateSpreadSheet(4),
-            self.uiTotalSpn.valueChanged:       lambda v: self.uiPunchStatProg.setMaximum(v),
+            self.uiInputEdit.focus:             lambda x: self.warnFocusEvent(x),
+            self.uiPanelChk.stateChanged:       lambda x: context.panel.setVisible(x == Qt.Checked),
+            self.uiTimesheetFrame.dropped:      lambda x: self.openXlsx(x),
+            self.uiTotalSpn.valueChanged:       lambda x: self.uiPunchStatProg.setMaximum(x),
         }.items()]
 
     @slot()
@@ -59,14 +63,16 @@ class MainWindow(QMainWindow):
         timesheet.open(xlsx)
         # View
         self.uiTimesheetFrame.display()
-        self.uiDeadlineTime.setDisabled(False)
         self.uiInputEdit.setDisabled(False)
         self.uiInputEdit.setFocus()
+        self.uiDeadlineTime.setDisabled(False)
+        self.uiFileSaveBtn.setDisabled(False)
         self.updateSpreadSheet()
         # Spinbox backgrounds
         palette = self.uiBarColumnSpn.palette()
         palette.setColor(QPalette.Base, BARCODE_COLOR.lighter())
         self.uiBarColumnSpn.setPalette(palette)
+        palette = self.uiNfcColumnSpn.palette()
         palette.setColor(QPalette.Base, NFCCODE_COLOR.lighter())
         self.uiNfcColumnSpn.setPalette(palette)
         self.statusbar.showMessage('載入 %d 列資料。' % timesheet.rowCount())
@@ -98,14 +104,14 @@ class MainWindow(QMainWindow):
         deadline_time = self.uiDeadlineTime.time().toPyTime()
         deadline = datetime.combine(date.today(), deadline_time)
         if re.fullmatch(r'[A-Za-z]\d{2}\w\d{5}', scan):  # manually inputed
-            timesheet.punch(self.uiBarColumnSpn.value(), scan.upper(), deadline)
+            matches = timesheet.punch(self.uiBarColumnSpn.value(), scan, deadline)
         elif re.fullmatch(r'[A-Za-z]\d{2}\w\d{6}', scan):  # scan barcode
-            timesheet.punch(self.uiBarColumnSpn.value(), scan[:-1].upper(), deadline)
+            matches = timesheet.punch(self.uiBarColumnSpn.value(), scan[:-1], deadline)
         elif re.fullmatch(r'\d{10}', scan):  # scan rfc code
             if self.uiOverwriteChk.isChecked():
                 timesheet.fillCard(self.uiNfcColumnSpn.value(), scan)
             else:
-                timesheet.punch(self.uiNfcColumnSpn.value(), scan, deadline)
+                matches = timesheet.punch(self.uiNfcColumnSpn.value(), scan, deadline)
         else:
             panel.setFailMsg(scan, '號碼格式錯誤')
             timesheet.latest_person = None
@@ -113,14 +119,13 @@ class MainWindow(QMainWindow):
         # Highlight latest checked-in one
         # self.lateTimeEdit.setDisabled(True)
         self.uiPunchStatProg.setValue(sum(timesheet.df.iloc[1:].checked))
-        info = timesheet.latest()
-        print(info)
-        if not info.empty:
-            row = info.index[0] + 1
+        print(matches)
+        if not matches.empty:
+            row = matches.index[0] + 1
             timesheet.updateRange('latest', (row, row), (1, timesheet.columnCount()), LATEST_COLOR)
             focus = timesheet.index(row, 0)
             self.uiTimesheetFrame.view().scrollTo(focus, QAbstractItemView.PositionAtCenter)
-            panel.setOkayMsg(info, deadline)
+            panel.setOkayMsg(matches, deadline)
         else:
             panel.setFailMsg(scan, '號碼不存在')
             timesheet.latest_person = None
@@ -145,34 +150,62 @@ class MainWindow(QMainWindow):
             timesheet.updateRange('barcode', rows, cols_bar, BARCODE_COLOR)
             timesheet.updateRange('nfccode', rows, cols_nfc, NFCCODE_COLOR)
 
+    @slot(QFocusEvent)
+    def warnFocusEvent(self, event):
+        panel = self.context.panel
+        panel.hintFocusEvent(event)
+
+        palette = self.uiInputEdit.style().standardPalette()
+        if event.lostFocus():
+            palette.setColor(QPalette.Base, UNFOCUS_COLOR.lighter())
+        self.uiInputEdit.setPalette(palette)
+
 
 class PanelWindow(QMainWindow):
     def __init__(self, context, parent=None):
         super().__init__(parent)
         uic.loadUi(context.uiPanel, self)
+        self._focus_message = self.uiInfoLbl.text()
 
         sans = QFont('IPAexGothic')
         sans.insertSubstitutions('sans', ['Noto Sans CJK TC', 'Microsoft YaHei'])
         sans.setStyleStrategy(QFont.PreferAntialias)
         self.setFont(sans)
 
-    def setFailMsg(self, scan, reason):
-        self.uiInfoLbl.setText(
-            '<div align="center" style="font-size:36pt; color:#2E3436;">' +
-            f'<p>掃描條碼失敗</p>' +
-            f'<p style="font-size:18pt; color:#888A85;">{reason}：{scan}</p>' +
-            '</div>'
-        )
+    def hintFocusEvent(self, event):
+        if event.lostFocus():
+            self._focus_message = self.uiInfoLbl.text()
+            unfocus_message = re.sub(r'color:#\w{6}', 'color:#BABDB6', self._focus_message)
+            self.uiInfoLbl.setText(unfocus_message)
+        else:
+            self.uiInfoLbl.setText(self._focus_message)
 
-    def setOkayMsg(self, info, deadline):
-        passed_mins = int((info.iloc[0, 2] - deadline).total_seconds() / 60)
-        self.uiInfoLbl.setText(
-            '<div align="center" style="font-size:36pt; color:#2E3436;"><table>' +
-            ''.join([f'<tr><td align="right">{k}：</td><td>{v}</td></tr>'
-                     for k, v in info.iloc[0, 3:6].items()]) +
-            '</table>' +
-            '<p style="color:%s">%s</p></div>' % (
-                '#4E9A06' if passed_mins < 5 else '#A40000',
-                '準時簽到' if passed_mins <= 0 else f'遲到 {passed_mins} 分鐘'
-            )
-        )
+    def setFailMsg(self, scan, reason):
+        pug = cleandoc(f"""
+            div(align='center' style='font-size:36pt; color:#2E3436;')
+              p 掃描條碼失敗
+              p(style='font-size:18pt; color:#888A85;') {reason}：{scan}
+        """)
+        html = pypugjs.simple_convert(pug)
+        self.uiInfoLbl.setText(html)
+
+    def setOkayMsg(self, matches, deadline):
+        late_mins = int((matches.iloc[0, 2] - deadline).total_seconds() / 60)
+        informs = matches.iloc[0, 3:6].to_dict()
+        pug = cleandoc(f"""
+            div(align='center' style='font-size:36pt; color:#2E3436;')
+              table
+                each key, val in {list(informs.items())}
+                  tr
+                    td(align='right')= key + '：'
+                    td= val
+              if {late_mins} <= 0
+                p(style='color:#4E9A06') 準時簽到
+              else  // elif/elsif/else-if seems broken
+                if {late_mins} <= 5
+                  p(style='color:#4E9A06') 遲到 {late_mins} 分鐘
+                else
+                  p(style='color:#A40000') 遲到 {late_mins} 分鐘
+        """)
+        html = pypugjs.simple_convert(pug)
+        self.uiInfoLbl.setText(html)

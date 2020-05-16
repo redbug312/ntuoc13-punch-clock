@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
 from PyQt5.QtCore import pyqtSignal as signal
+from PyQt5.QtGui import QFocusEvent
+
+
+class FocusAwareWidget:
+    focus = signal(QFocusEvent, name='focus')
+
+    def focusInEvent(self, event):
+        self.focus.emit(event)
+
+    def focusOutEvent(self, event):
+        self.focus.emit(event)
 
 
 class DropableWidget:
