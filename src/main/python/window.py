@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import re
+import pypugjs
 from datetime import date, datetime
+from inspect import cleandoc
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, QTime, pyqtSlot as slot
 from PyQt5.QtGui import QColor, QFont, QPalette, QFocusEvent
@@ -172,22 +174,28 @@ class PanelWindow(QMainWindow):
         self.setFont(sans)
 
     def setFailMsg(self, scan, reason):
-        self.uiInfoLbl.setText(
-            '<div align="center" style="font-size:36pt; color:#2E3436;">' +
-            f'<p>掃描條碼失敗</p>' +
-            f'<p style="font-size:18pt; color:#888A85;">{reason}：{scan}</p>' +
-            '</div>'
-        )
+        pug = cleandoc(f"""
+            div(align='center' style='font-size:36pt; color:#2E3436;')
+              p 掃描條碼失敗
+              p(style='font-size:18pt; color:#888A85;') {reason}：{scan}
+        """)
+        html = pypugjs.simple_convert(pug)
+        self.uiInfoLbl.setText(html)
 
     def setOkayMsg(self, info, deadline):
-        passed_mins = int((info.iloc[0, 2] - deadline).total_seconds() / 60)
-        self.uiInfoLbl.setText(
-            '<div align="center" style="font-size:36pt; color:#2E3436;"><table>' +
-            ''.join([f'<tr><td align="right">{k}：</td><td>{v}</td></tr>'
-                     for k, v in info.iloc[0, 3:6].items()]) +
-            '</table>' +
-            '<p style="color:%s">%s</p></div>' % (
-                '#4E9A06' if passed_mins < 5 else '#A40000',
-                '準時簽到' if passed_mins <= 0 else f'遲到 {passed_mins} 分鐘'
-            )
-        )
+        late_mins = int((info.iloc[0, 2] - deadline).total_seconds() / 60)
+        informs = info.iloc[0, 3:6].to_dict()
+        pug = cleandoc(f"""
+            div(align='center' style='font-size:36pt; color:#2E3436;')
+              table
+                each key, val in {list(informs.items())}
+                  tr
+                    td(align='right')= key + '：'
+                    td= val
+              if {late_mins} <= 5
+                p(style='color:#4E9A06') 準時簽到
+              else
+                p(style='color:#A40000') 遲到 {late_mins} 分鐘
+        """)
+        html = pypugjs.simple_convert(pug)
+        self.uiInfoLbl.setText(html)
