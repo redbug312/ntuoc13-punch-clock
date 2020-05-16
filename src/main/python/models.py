@@ -8,9 +8,9 @@ from qspreadsheet import SpreadSheetModel
 
 def decide_penalty(expected, outcome):
     mins = int((outcome - expected).total_seconds() / 60)
-    return 0 if mins < 5 \
-        else 100 if mins < 10 \
-        else 200 if mins < 30 \
+    return 0 if mins <= 5 \
+        else 100 if mins <= 10 \
+        else 200 if mins <= 30 \
         else inf  # to be determined by case
 
 
