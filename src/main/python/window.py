@@ -41,22 +41,11 @@ class MainWindow(QMainWindow):
             self.uiInputEdit.returnPressed:     self.scanCard,
             self.uiBarColumnSpn.valueChanged:   lambda: self.updateSpreadSheet(4),
             self.uiNfcColumnSpn.valueChanged:   lambda: self.updateSpreadSheet(4),
-            self.uiInputEdit.focus:             lambda x: self.focusWarn(x),
+            self.uiInputEdit.focus:             lambda x: self.warnFocusEvent(x),
             self.uiPanelChk.stateChanged:       lambda x: context.panel.setVisible(x == Qt.Checked),
             self.uiTimesheetFrame.dropped:      lambda x: self.openXlsx(x),
             self.uiTotalSpn.valueChanged:       lambda x: self.uiPunchStatProg.setMaximum(x),
         }.items()]
-
-    @slot(QFocusEvent)
-    def focusWarn(self, focus):
-        panel = self.context.panel
-        palette = self.uiInputEdit.style().standardPalette()
-        if focus.gotFocus():
-            panel.setFailMsg('回到焦點', focus.reason())
-        else:
-            panel.setFailMsg('失去焦點', focus.reason())
-            palette.setColor(QPalette.Base, UNFOCUS_COLOR.lighter())
-        self.uiInputEdit.setPalette(palette)
 
     @slot()
     @slot(str)
@@ -161,16 +150,35 @@ class MainWindow(QMainWindow):
             timesheet.updateRange('barcode', rows, cols_bar, BARCODE_COLOR)
             timesheet.updateRange('nfccode', rows, cols_nfc, NFCCODE_COLOR)
 
+    @slot(QFocusEvent)
+    def warnFocusEvent(self, event):
+        panel = self.context.panel
+        panel.hintFocusEvent(event)
+
+        palette = self.uiInputEdit.style().standardPalette()
+        if event.lostFocus():
+            palette.setColor(QPalette.Base, UNFOCUS_COLOR.lighter())
+        self.uiInputEdit.setPalette(palette)
+
 
 class PanelWindow(QMainWindow):
     def __init__(self, context, parent=None):
         super().__init__(parent)
         uic.loadUi(context.uiPanel, self)
+        self._focus_message = self.uiInfoLbl.text()
 
         sans = QFont('IPAexGothic')
         sans.insertSubstitutions('sans', ['Noto Sans CJK TC', 'Microsoft YaHei'])
         sans.setStyleStrategy(QFont.PreferAntialias)
         self.setFont(sans)
+
+    def hintFocusEvent(self, event):
+        if event.lostFocus():
+            self._focus_message = self.uiInfoLbl.text()
+            unfocus_message = re.sub(r'color:#\w{6}', 'color:#BABDB6', self._focus_message)
+            self.uiInfoLbl.setText(unfocus_message)
+        else:
+            self.uiInfoLbl.setText(self._focus_message)
 
     def setFailMsg(self, scan, reason):
         pug = cleandoc(f"""
@@ -191,10 +199,13 @@ class PanelWindow(QMainWindow):
                   tr
                     td(align='right')= key + '：'
                     td= val
-              if {late_mins} <= 5
+              if {late_mins} <= 0
                 p(style='color:#4E9A06') 準時簽到
-              else
-                p(style='color:#A40000') 遲到 {late_mins} 分鐘
+              else  // elif/elsif/else-if seems broken
+                if {late_mins} <= 5
+                  p(style='color:#4E9A06') 遲到 {late_mins} 分鐘
+                else
+                  p(style='color:#A40000') 遲到 {late_mins} 分鐘
         """)
         html = pypugjs.simple_convert(pug)
         self.uiInfoLbl.setText(html)
