@@ -17,24 +17,26 @@ def decide_penalty(expected, outcome):
 class TimesheetModel(SpreadSheetModel):
     def __init__(self, parent=None):
         super().__init__(parent)
-        # TODO return latest_person to make model stateless
-        self.latest_person = None
 
     def punch(self, icol, target, deadline):
-        column = self.df.columns[icol - 1]
-        matches = self.df.loc[:, column] == target
-        self.layoutAboutToBeChanged.emit()
-        if not self.df.loc[matches].checked.all():
+        columnhead = self.df.iloc[0]
+        boolmask = self._lookup_boolmask(icol, target)
+        if not self.df.loc[boolmask].checked.all():
             now = datetime.now()
             penalty = decide_penalty(deadline, now)
-            self.df.loc[matches, :3] = (True, penalty, now)
-        self.layoutChanged.emit()
-        self.latest_person = matches
+            self.layoutAboutToBeChanged.emit()
+            self.df.loc[boolmask, :3] = (True, penalty, now)
+            self.layoutChanged.emit()
+        # Parameter `target` can be 'r089220750', returned ['R08922075']
+        return self.df.loc[boolmask].rename(columns=columnhead)
 
-    def latest(self):
-        info = self.df[self.latest_person]
-        info.rename(columns=self.df.iloc[0], inplace=True)
-        return info
+    def lookup(self, icol, target):
+        columnhead = self.df.iloc[0]
+        boolmask = self._lookup_boolmask(icol, target)
+        return self.df.loc[boolmask].rename(columns=columnhead)
+
+    def _lookup_boolmask(self, icol, target):
+        return self.df.iloc[:, icol - 1] == target
 
     def fillCard(self, icol, card):
         column = self.df.columns[icol - 1]

@@ -115,14 +115,14 @@ class MainWindow(QMainWindow):
         deadline_time = self.uiDeadlineTime.time().toPyTime()
         deadline = datetime.combine(date.today(), deadline_time)
         if re.fullmatch(r'[A-Za-z]\d{2}\w\d{5}', scan):  # manually inputed
-            timesheet.punch(self.uiBarColumnSpn.value(), scan.upper(), deadline)
+            matches = timesheet.punch(self.uiBarColumnSpn.value(), scan.upper(), deadline)
         elif re.fullmatch(r'[A-Za-z]\d{2}\w\d{6}', scan):  # scan barcode
-            timesheet.punch(self.uiBarColumnSpn.value(), scan[:-1].upper(), deadline)
+            matches = timesheet.punch(self.uiBarColumnSpn.value(), scan[:-1].upper(), deadline)
         elif re.fullmatch(r'\d{10}', scan):  # scan rfc code
             if self.uiOverwriteChk.isChecked():
                 timesheet.fillCard(self.uiNfcColumnSpn.value(), scan)
             else:
-                timesheet.punch(self.uiNfcColumnSpn.value(), scan, deadline)
+                matches = timesheet.punch(self.uiNfcColumnSpn.value(), scan, deadline)
         else:
             panel.setFailMsg(scan, '號碼格式錯誤')
             timesheet.latest_person = None
@@ -130,14 +130,13 @@ class MainWindow(QMainWindow):
         # Highlight latest checked-in one
         # self.lateTimeEdit.setDisabled(True)
         self.uiPunchStatProg.setValue(sum(timesheet.df.iloc[1:].checked))
-        info = timesheet.latest()
-        print(info)
-        if not info.empty:
-            row = info.index[0] + 1
+        print(matches)
+        if not matches.empty:
+            row = matches.index[0] + 1
             timesheet.updateRange('latest', (row, row), (1, timesheet.columnCount()), LATEST_COLOR)
             focus = timesheet.index(row, 0)
             self.uiTimesheetFrame.view().scrollTo(focus, QAbstractItemView.PositionAtCenter)
-            panel.setOkayMsg(info, deadline)
+            panel.setOkayMsg(matches, deadline)
         else:
             panel.setFailMsg(scan, '號碼不存在')
             timesheet.latest_person = None
@@ -182,9 +181,9 @@ class PanelWindow(QMainWindow):
         html = pypugjs.simple_convert(pug)
         self.uiInfoLbl.setText(html)
 
-    def setOkayMsg(self, info, deadline):
-        late_mins = int((info.iloc[0, 2] - deadline).total_seconds() / 60)
-        informs = info.iloc[0, 3:6].to_dict()
+    def setOkayMsg(self, matches, deadline):
+        late_mins = int((matches.iloc[0, 2] - deadline).total_seconds() / 60)
+        informs = matches.iloc[0, 3:6].to_dict()
         pug = cleandoc(f"""
             div(align='center' style='font-size:36pt; color:#2E3436;')
               table
