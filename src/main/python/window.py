@@ -98,43 +98,39 @@ class MainWindow(QMainWindow):
 
     @slot()
     def scanCard(self):
+        timesheet = self.context.timesheet
+        panel = self.context.panel
+
         scan = self.uiInputEdit.text()
-        self.uiInputEdit.clear()
         iloc_grp = self.uiGrpColSpn.value()
         iloc_bar = self.uiBarColSpn.value()
         latetime_pm = self.uiPmLateTime.time().toPyTime()
         latetime_ta = self.uiTaLateTime.time().toPyTime()
-        # Lookup their group
-        timesheet = self.context.timesheet
-        info = timesheet.lookup(iloc_bar, scan)
-        latetime = latetime_pm \
-            if info.iloc[:, iloc_grp - 1].isin(['籌員']).all() \
-            else latetime_ta
-        deadline = datetime.combine(date.today(), latetime)
-        # Punch clock in timesheet
-        panel = self.context.panel
-        if re.fullmatch(r'[A-Za-z]\d{2}\w\d{5}', scan):  # manually inputed
+
+        try:
+            # Lookup their group
+            group = timesheet.lookup(iloc_bar, scan).iloc[:, iloc_grp - 1]
+            latetime = latetime_pm if group.isin(['籌員']).all() \
+                else latetime_ta
+            deadline = datetime.combine(date.today(), latetime)
+            # Punch clock in timesheet
             matches = timesheet.punch(iloc_bar, scan, deadline)
-        elif re.fullmatch(r'[A-Za-z]\d{2}\w\d{6}', scan):  # scan barcode
-            matches = timesheet.punch(iloc_bar, scan[:-1], deadline)
-        elif re.fullmatch(r'\d{10}', scan):  # scan rfc code
-            matches = timesheet.punch(self.uiGrpColSpn.value(), scan, deadline)
-        else:
-            panel.setFailMsg(scan, '號碼格式錯誤')
-            timesheet.latest_person = None
-            return
-        # Highlight latest checked-in one
-        self.uiPunchStatProg.setValue(sum(timesheet.df.iloc[1:].checked))
-        print(matches)
-        if not matches.empty:
+            if matches.empty:
+                raise KeyError()
+            print(matches)
+            # Highlight latest checked-in one
+            self.uiPunchStatProg.setValue(sum(timesheet.df.iloc[1:].checked))
             row = matches.index[0] + 1
             timesheet.updateRange('latest', (row, row), (1, timesheet.columnCount()), LATEST_COLOR)
             focus = timesheet.index(row, 0)
-            self.uiTimesheetFrame.view().scrollTo(focus, QAbstractItemView.PositionAtCenter)
+            self.uiTimesheetFrame.view() \
+                .scrollTo(focus, QAbstractItemView.PositionAtCenter)
+            self.uiInputEdit.clear()
             panel.setOkayMsg(matches, deadline)
-        else:
+        except ValueError:
+            panel.setFailMsg(scan, '號碼格式錯誤')
+        except KeyError:
             panel.setFailMsg(scan, '號碼不存在')
-            timesheet.latest_person = None
 
     @slot(int)
     def updateSpreadSheet(self, flags=0b1111):
