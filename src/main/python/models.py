@@ -17,6 +17,11 @@ def decide_penalty(expected, outcome):
 class TimesheetModel(SpreadSheetModel):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.prepends = pd.DataFrame({
+            'checked': {'name': '簽到狀況',   'init': False},
+            'penalty': {'name': '酌扣獎勵金', 'init': None},
+            'time':    {'name': '簽到時間',   'init': None},
+        }).transpose()
 
     def punch(self, icol, target, deadline):
         columnhead = self.df.iloc[0]
@@ -25,7 +30,7 @@ class TimesheetModel(SpreadSheetModel):
             now = datetime.now()
             penalty = decide_penalty(deadline, now)
             self.layoutAboutToBeChanged.emit()
-            self.df.loc[boolmask, :3] = (True, penalty, now)
+            self.df.loc[boolmask, :len(self.prepends)] = (True, penalty, now)
             self.layoutChanged.emit()
         # Parameter `target` can be 'r089220750', returned ['R08922075']
         return self.df.loc[boolmask].rename(columns=columnhead)
@@ -47,10 +52,15 @@ class TimesheetModel(SpreadSheetModel):
     # SpreadSheetModel overriden methods
 
     def open(self, path):
-        self.layoutAboutToBeChanged.emit()
         super().open(path)
-        prepend = pd.DataFrame(columns=['checked', 'penalty', 'time'])
-        self.df = pd.concat([prepend, self.df], axis='columns')
-        self.df.iloc[:, :3] = (False, None, None)
-        self.df.iloc[0, :3] = ('簽到狀況', '酌扣獎勵金', '簽到時間')
+        pre_df = pd.DataFrame(columns=self.prepends.index)
+        self.layoutAboutToBeChanged.emit()
+        self.df = pd.concat([pre_df, self.df], axis='columns')
+        self.df.iloc[:, :len(self.prepends)] = self.prepends.init.to_list()
+        self.df.iloc[0, :len(self.prepends)] = self.prepends.name.to_list()
         self.layoutChanged.emit()
+
+    def save(self, path):
+        infs = self.df.penalty == inf
+        self.df.loc[infs, 'penalty'] = str(inf)
+        super().save(path)
