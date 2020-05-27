@@ -10,8 +10,8 @@ from PyQt5.QtWidgets import QMainWindow, QFileDialog, QAbstractItemView, QTableV
 
 
 LATEST_COLOR  = QColor(240, 198, 116, 50)
-BARCODE_COLOR = QColor(178, 148, 187, 50)
-GRPCODE_COLOR = QColor(138, 190, 183, 50)
+BARCODE_COLOR = QColor(136, 138, 133, 50)
+GRPCODE_COLOR = QColor(211, 215, 207, 50)
 UNFOCUS_COLOR = QColor(204, 102, 102, 50)
 
 
