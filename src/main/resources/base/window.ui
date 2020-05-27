@@ -140,10 +140,10 @@
            </item>
            <item>
             <layout class="QGridLayout" name="gridLayout_5">
-             <item row="1" column="1">
+             <item row="2" column="1">
               <widget class="QSpinBox" name="uiTotalSpn"/>
              </item>
-             <item row="1" column="0">
+             <item row="2" column="0">
               <widget class="QLabel" name="uiTotalLbl">
                <property name="text">
                 <string>應到人數</string>
@@ -153,18 +153,35 @@
                </property>
               </widget>
              </item>
-             <item row="0" column="0">
-              <widget class="QLabel" name="uiDeadlineLbl">
-               <property name="text">
-                <string>遲到時間</string>
-               </property>
-               <property name="buddy">
-                <cstring>uiDeadlineTime</cstring>
+             <item row="0" column="1">
+              <widget class="QTimeEdit" name="uiPmLateTime">
+               <property name="displayFormat">
+                <string>hh:mm</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="1">
-              <widget class="QTimeEdit" name="uiDeadlineTime">
+             <item row="0" column="0">
+              <widget class="QLabel" name="uiPmLateLbl">
+               <property name="text">
+                <string>籌員遲到</string>
+               </property>
+               <property name="buddy">
+                <cstring>uiPmLateTime</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="uiTaLateLbl">
+               <property name="text">
+                <string>隊輔遲到</string>
+               </property>
+               <property name="buddy">
+                <cstring>uiTaLateTime</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QTimeEdit" name="uiTaLateTime">
                <property name="displayFormat">
                 <string>hh:mm</string>
                </property>
@@ -303,7 +320,8 @@
   <tabstop>uiBarColSpn</tabstop>
   <tabstop>uiInputEdit</tabstop>
   <tabstop>uiPanelChk</tabstop>
-  <tabstop>uiDeadlineTime</tabstop>
+  <tabstop>uiPmLateTime</tabstop>
+  <tabstop>uiTaLateTime</tabstop>
   <tabstop>uiTotalSpn</tabstop>
   <tabstop>uiFileOpenBtn</tabstop>
   <tabstop>uiFileSaveBtn</tabstop>

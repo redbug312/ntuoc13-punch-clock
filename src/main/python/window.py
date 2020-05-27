@@ -30,7 +30,8 @@ class MainWindow(QMainWindow):
         tableview.setTabKeyNavigation(False)
         tableview.setSelectionMode(QAbstractItemView.NoSelection)
 
-        self.uiDeadlineTime.setTime(QTime.currentTime())
+        self.uiPmLateTime.setTime(QTime.currentTime())
+        self.uiTaLateTime.setTime(QTime.currentTime())
         self.uiTimesheetFrame.setPlaceholder(placeholder)
         self.uiTimesheetFrame.setView(tableview)
         self.uiTimesheetFrame.overlay()
@@ -65,7 +66,8 @@ class MainWindow(QMainWindow):
         self.uiTimesheetFrame.display()
         self.uiInputEdit.setDisabled(False)
         self.uiInputEdit.setFocus()
-        self.uiDeadlineTime.setDisabled(False)
+        self.uiPmLateTime.setDisabled(False)
+        self.uiTaLateTime.setDisabled(False)
         self.uiFileSaveBtn.setDisabled(False)
         self.updateSpreadSheet()
         # Spinbox backgrounds
@@ -96,17 +98,25 @@ class MainWindow(QMainWindow):
 
     @slot()
     def scanCard(self):
-        timesheet = self.context.timesheet
-        panel = self.context.panel
         scan = self.uiInputEdit.text()
         self.uiInputEdit.clear()
-        # Update spreadsheet by scanned
-        deadline_time = self.uiDeadlineTime.time().toPyTime()
-        deadline = datetime.combine(date.today(), deadline_time)
+        iloc_grp = self.uiGrpColSpn.value()
+        iloc_bar = self.uiBarColSpn.value()
+        latetime_pm = self.uiPmLateTime.time().toPyTime()
+        latetime_ta = self.uiTaLateTime.time().toPyTime()
+        # Lookup their group
+        timesheet = self.context.timesheet
+        info = timesheet.lookup(iloc_bar, scan)
+        latetime = latetime_pm \
+            if info.iloc[:, iloc_grp - 1].isin(['籌員']).all() \
+            else latetime_ta
+        deadline = datetime.combine(date.today(), latetime)
+        # Punch clock in timesheet
+        panel = self.context.panel
         if re.fullmatch(r'[A-Za-z]\d{2}\w\d{5}', scan):  # manually inputed
-            matches = timesheet.punch(self.uiBarColSpn.value(), scan, deadline)
+            matches = timesheet.punch(iloc_bar, scan, deadline)
         elif re.fullmatch(r'[A-Za-z]\d{2}\w\d{6}', scan):  # scan barcode
-            matches = timesheet.punch(self.uiBarColSpn.value(), scan[:-1], deadline)
+            matches = timesheet.punch(iloc_bar, scan[:-1], deadline)
         elif re.fullmatch(r'\d{10}', scan):  # scan rfc code
             matches = timesheet.punch(self.uiGrpColSpn.value(), scan, deadline)
         else:
@@ -114,7 +124,6 @@ class MainWindow(QMainWindow):
             timesheet.latest_person = None
             return
         # Highlight latest checked-in one
-        # self.lateTimeEdit.setDisabled(True)
         self.uiPunchStatProg.setValue(sum(timesheet.df.iloc[1:].checked))
         print(matches)
         if not matches.empty:
