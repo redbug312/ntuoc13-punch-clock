@@ -141,15 +141,15 @@
            <item>
             <layout class="QGridLayout" name="gridLayout_5">
              <item row="2" column="1">
-              <widget class="QSpinBox" name="uiTotalSpn"/>
+              <widget class="QSpinBox" name="uiAbsenceSpn"/>
              </item>
              <item row="2" column="0">
-              <widget class="QLabel" name="uiTotalLbl">
+              <widget class="QLabel" name="uiAbsenceLbl">
                <property name="text">
-                <string>應到人數</string>
+                <string>請假人數</string>
                </property>
                <property name="buddy">
-                <cstring>uiTotalSpn</cstring>
+                <cstring>uiAbsenceSpn</cstring>
                </property>
               </widget>
              </item>
@@ -322,7 +322,7 @@
   <tabstop>uiPanelChk</tabstop>
   <tabstop>uiPmLateTime</tabstop>
   <tabstop>uiTaLateTime</tabstop>
-  <tabstop>uiTotalSpn</tabstop>
+  <tabstop>uiAbsenceSpn</tabstop>
   <tabstop>uiFileOpenBtn</tabstop>
   <tabstop>uiFileSaveBtn</tabstop>
   <tabstop>tabWidget</tabstop>

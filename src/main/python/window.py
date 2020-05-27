@@ -40,12 +40,12 @@ class MainWindow(QMainWindow):
             self.uiFileOpenBtn.clicked:     self.openXlsx,
             self.uiFileSaveBtn.clicked:     self.saveXlsx,
             self.uiInputEdit.returnPressed: self.scanCard,
-            self.uiGrpColSpn.valueChanged:  lambda: self.updateSpreadSheet(4),
-            self.uiBarColSpn.valueChanged:  lambda: self.updateSpreadSheet(4),
+            self.uiBarColSpn.valueChanged:  lambda: self.updateSpreadSheet(0b0100),
+            self.uiGrpColSpn.valueChanged:  lambda: self.updateSpreadSheet(0b0100),
+            self.uiAbsenceSpn.valueChanged: lambda: self.updateProgressBar(0b10),
             self.uiInputEdit.focus:         lambda x: self.warnFocusEvent(x),
             self.uiPanelChk.stateChanged:   lambda x: context.panel.setVisible(x == Qt.Checked),
             self.uiTimesheetFrame.dropped:  lambda x: self.openXlsx(x),
-            self.uiTotalSpn.valueChanged:   lambda x: self.uiPunchStatProg.setMaximum(x),
         }.items()]
 
     @slot()
@@ -66,10 +66,9 @@ class MainWindow(QMainWindow):
         self.uiTimesheetFrame.display()
         self.uiInputEdit.setDisabled(False)
         self.uiInputEdit.setFocus()
-        self.uiPmLateTime.setDisabled(False)
-        self.uiTaLateTime.setDisabled(False)
         self.uiFileSaveBtn.setDisabled(False)
         self.updateSpreadSheet()
+        self.updateProgressBar()
         # Spinbox backgrounds
         palette = self.uiBarColSpn.palette()
         palette.setColor(QPalette.Base, BARCODE_COLOR.lighter())
@@ -119,7 +118,7 @@ class MainWindow(QMainWindow):
                 raise KeyError()
             print(matches)
             # Highlight latest checked-in one
-            self.uiPunchStatProg.setValue(sum(timesheet.df.iloc[1:].checked))
+            self.updateProgressBar(0x01)
             row = matches.index[0] + 1
             timesheet.updateRange('latest', (row, row), (1, timesheet.columnCount()), LATEST_COLOR)
             focus = timesheet.index(row, 0)
@@ -141,8 +140,7 @@ class MainWindow(QMainWindow):
             self.uiBarColSpn.setMaximum(cols)
             self.uiGrpColSpn.setMaximum(cols)
             rows = timesheet.rowCount()
-            self.uiTotalSpn.setMaximum(rows - 1)
-            self.uiTotalSpn.setValue(rows - 1)
+            self.uiAbsenceSpn.setMaximum(rows - 1)
         if flags & 0b0010:  # columnhead of spreadsheet
             pass
         if flags & 0b0100:  # ranges in spreadsheet
@@ -151,6 +149,17 @@ class MainWindow(QMainWindow):
             cols_grp = (self.uiGrpColSpn.value(), ) * 2
             timesheet.updateRange('barcode', rows, cols_bar, BARCODE_COLOR)
             timesheet.updateRange('grpcode', rows, cols_grp, GRPCODE_COLOR)
+
+    @slot(int)
+    def updateProgressBar(self, flags=0b11):
+        timesheet = self.context.timesheet
+        if flags & 0b01:  # set value
+            checked = sum(timesheet.df.iloc[1:].checked)
+            self.uiPunchStatProg.setValue(checked)
+        if flags & 0b10:  # set maximum
+            expected = self.uiAbsenceSpn.maximum()
+            absented = self.uiAbsenceSpn.value()
+            self.uiPunchStatProg.setMaximum(expected - absented)
 
     @slot(QFocusEvent)
     def warnFocusEvent(self, event):
