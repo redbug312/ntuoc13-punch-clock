@@ -1,6 +1,6 @@
 {
     "categories": "Utility;",
-    "description": "",
-    "author_email": "",
-    "url": ""
+    "description": "Punch clock Qt-based application for NTU OC13.",
+    "author_email": "redbug312@gmail.com",
+    "url": "https://github.com/RedBug312/ntuoc13-punch-clock"
 }
