@@ -1,6 +1,6 @@
 {
     "categories": "Utility;",
-    "description": "Punch clock Qt-based application for NTU OC13.",
+    "description": "Punch clock Qt-based application for National Taiwan University Orientation Camp.",
     "author_email": "redbug312@gmail.com",
     "url": "https://github.com/RedBug312/ntuoc13-punch-clock"
 }
