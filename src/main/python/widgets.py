@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QFrame, QHBoxLayout, QLineEdit
 from mixins import FocusAwareWidget, DropableWidget
 
 
-class ScanInputLineEdit(QLineEdit, FocusAwareWidget):
+class FocusAwareLineEdit(QLineEdit, FocusAwareWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 

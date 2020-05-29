@@ -94,7 +94,7 @@
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_4">
            <item>
-            <widget class="ScanInputLineEdit" name="uiInputEdit">
+            <widget class="FocusAwareLineEdit" name="uiInputEdit">
              <property name="enabled">
               <bool>false</bool>
              </property>
@@ -310,7 +310,7 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>ScanInputLineEdit</class>
+   <class>FocusAwareLineEdit</class>
    <extends>QLineEdit</extends>
    <header location="global">widgets.h</header>
   </customwidget>
