@@ -117,19 +117,22 @@ class MainWindow(QMainWindow):
             if matches.empty:
                 raise KeyError()
             print(matches)
-            # Highlight latest checked-in one
-            self.updateProgressBar(0x01)
-            row = matches.index[0] + 1
-            timesheet.updateRange('latest', (row, row), (1, timesheet.columnCount()), LATEST_COLOR)
-            focus = timesheet.index(row, 0)
-            self.uiTimesheetFrame.view() \
-                .scrollTo(focus, QAbstractItemView.PositionAtCenter)
-            self.uiInputEdit.clear()
-            panel.setOkayMsg(matches, deadline)
         except ValueError:
             panel.setFailMsg(scan, '號碼格式錯誤')
         except KeyError:
             panel.setFailMsg(scan, '號碼不存在')
+        finally:
+            self.uiInputEdit.clear()
+
+        # Highlight latest checked-in one
+        self.updateProgressBar(0x01)
+        row = matches.index[0] + 1
+        timesheet.updateRange('latest', (row, row),
+                              (1, timesheet.columnCount()), LATEST_COLOR)
+        focus = timesheet.index(row, 0)
+        self.uiTimesheetFrame.view() \
+            .scrollTo(focus, QAbstractItemView.PositionAtCenter)
+        panel.setOkayMsg(matches, deadline)
 
     @slot(int)
     def updateSpreadSheet(self, flags=0b1111):
