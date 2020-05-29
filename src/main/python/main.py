@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 from fbs_runtime.application_context.PyQt5 import ApplicationContext, cached_property
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QFont, QPixmap
 
 from window import MainWindow, PanelWindow
 from models import TimesheetModel
@@ -39,6 +39,14 @@ class AppContext(ApplicationContext):
     @cached_property
     def pixmapExcel(self):
         return QPixmap(self.get_resource('microsoft-excel.png'))
+
+    @cached_property
+    def fontSans(self):
+        sans = QFont('IPAexGothic')
+        alternatives = ['Noto Sans CJK TC', 'Microsoft YaHei']
+        sans.insertSubstitutions('IPAexGothic', alternatives)
+        sans.setStyleStrategy(QFont.PreferAntialias)
+        return sans
 
 
 if __name__ == '__main__':

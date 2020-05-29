@@ -5,7 +5,7 @@ from datetime import date, datetime
 from inspect import cleandoc
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, QTime, pyqtSlot as slot
-from PyQt5.QtGui import QColor, QFont, QPalette, QFocusEvent
+from PyQt5.QtGui import QColor, QPalette, QFocusEvent
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QAbstractItemView, QTableView, QFrame
 
 
@@ -176,17 +176,14 @@ class PanelWindow(QMainWindow):
     def __init__(self, context, parent=None):
         super().__init__(parent)
         uic.loadUi(context.uiPanel, self)
+        self.setFont(context.fontSans)
         self._focus_message = self.uiInfoLbl.text()
-
-        sans = QFont('IPAexGothic')
-        sans.insertSubstitutions('sans', ['Noto Sans CJK TC', 'Microsoft YaHei'])
-        sans.setStyleStrategy(QFont.PreferAntialias)
-        self.setFont(sans)
 
     def hintFocusEvent(self, event):
         if event.lostFocus():
             self._focus_message = self.uiInfoLbl.text()
-            unfocus_message = re.sub(r'color:#\w{6}', 'color:#BABDB6', self._focus_message)
+            unfocus_message = re.sub(r'color:#\w{6}', 'color:#BABDB6',
+                                     self._focus_message)
             self.uiInfoLbl.setText(unfocus_message)
         else:
             self.uiInfoLbl.setText(self._focus_message)
