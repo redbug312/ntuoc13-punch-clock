@@ -10,8 +10,8 @@ from PyQt5.QtWidgets import QMainWindow, QFileDialog, QAbstractItemView, QTableV
 
 
 LATEST_COLOR  = QColor(240, 198, 116, 50)
-BARCODE_COLOR = QColor(178, 148, 187, 50)
-NFCCODE_COLOR = QColor(138, 190, 183, 50)
+BARCODE_COLOR = QColor(136, 138, 133, 50)
+GRPCODE_COLOR = QColor(211, 215, 207, 50)
 UNFOCUS_COLOR = QColor(204, 102, 102, 50)
 
 
@@ -30,21 +30,22 @@ class MainWindow(QMainWindow):
         tableview.setTabKeyNavigation(False)
         tableview.setSelectionMode(QAbstractItemView.NoSelection)
 
-        self.uiDeadlineTime.setTime(QTime.currentTime())
+        self.uiPmLateTime.setTime(QTime.currentTime())
+        self.uiTaLateTime.setTime(QTime.currentTime())
         self.uiTimesheetFrame.setPlaceholder(placeholder)
         self.uiTimesheetFrame.setView(tableview)
         self.uiTimesheetFrame.overlay()
 
         self.connects = [sig.connect(slt) for sig, slt in {
-            self.uiFileOpenBtn.clicked:         self.openXlsx,
-            self.uiFileSaveBtn.clicked:         self.saveXlsx,
-            self.uiInputEdit.returnPressed:     self.scanCard,
-            self.uiBarColumnSpn.valueChanged:   lambda: self.updateSpreadSheet(4),
-            self.uiNfcColumnSpn.valueChanged:   lambda: self.updateSpreadSheet(4),
-            self.uiInputEdit.focus:             lambda x: self.warnFocusEvent(x),
-            self.uiPanelChk.stateChanged:       lambda x: context.panel.setVisible(x == Qt.Checked),
-            self.uiTimesheetFrame.dropped:      lambda x: self.openXlsx(x),
-            self.uiTotalSpn.valueChanged:       lambda x: self.uiPunchStatProg.setMaximum(x),
+            self.uiFileOpenBtn.clicked:     self.openXlsx,
+            self.uiFileSaveBtn.clicked:     self.saveXlsx,
+            self.uiInputEdit.returnPressed: self.scanCard,
+            self.uiBarColSpn.valueChanged:  lambda: self.updateSpreadSheet(0b0100),
+            self.uiGrpColSpn.valueChanged:  lambda: self.updateSpreadSheet(0b0100),
+            self.uiAbsenceSpn.valueChanged: lambda: self.updateProgressBar(0b10),
+            self.uiInputEdit.focus:         lambda x: self.warnFocusEvent(x),
+            self.uiPanelChk.stateChanged:   lambda x: context.panel.setVisible(x == Qt.Checked),
+            self.uiTimesheetFrame.dropped:  lambda x: self.openXlsx(x),
         }.items()]
 
     @slot()
@@ -65,16 +66,16 @@ class MainWindow(QMainWindow):
         self.uiTimesheetFrame.display()
         self.uiInputEdit.setDisabled(False)
         self.uiInputEdit.setFocus()
-        self.uiDeadlineTime.setDisabled(False)
         self.uiFileSaveBtn.setDisabled(False)
         self.updateSpreadSheet()
+        self.updateProgressBar()
         # Spinbox backgrounds
-        palette = self.uiBarColumnSpn.palette()
+        palette = self.uiBarColSpn.palette()
         palette.setColor(QPalette.Base, BARCODE_COLOR.lighter())
-        self.uiBarColumnSpn.setPalette(palette)
-        palette = self.uiNfcColumnSpn.palette()
-        palette.setColor(QPalette.Base, NFCCODE_COLOR.lighter())
-        self.uiNfcColumnSpn.setPalette(palette)
+        self.uiBarColSpn.setPalette(palette)
+        palette = self.uiGrpColSpn.palette()
+        palette.setColor(QPalette.Base, GRPCODE_COLOR.lighter())
+        self.uiGrpColSpn.setPalette(palette)
         self.statusbar.showMessage('載入 %d 列資料。' % timesheet.rowCount())
 
     @slot()
@@ -98,37 +99,37 @@ class MainWindow(QMainWindow):
     def scanCard(self):
         timesheet = self.context.timesheet
         panel = self.context.panel
+
         scan = self.uiInputEdit.text()
-        self.uiInputEdit.clear()
-        # Update spreadsheet by scanned
-        deadline_time = self.uiDeadlineTime.time().toPyTime()
-        deadline = datetime.combine(date.today(), deadline_time)
-        if re.fullmatch(r'[A-Za-z]\d{2}\w\d{5}', scan):  # manually inputed
-            matches = timesheet.punch(self.uiBarColumnSpn.value(), scan, deadline)
-        elif re.fullmatch(r'[A-Za-z]\d{2}\w\d{6}', scan):  # scan barcode
-            matches = timesheet.punch(self.uiBarColumnSpn.value(), scan[:-1], deadline)
-        elif re.fullmatch(r'\d{10}', scan):  # scan rfc code
-            if self.uiOverwriteChk.isChecked():
-                timesheet.fillCard(self.uiNfcColumnSpn.value(), scan)
-            else:
-                matches = timesheet.punch(self.uiNfcColumnSpn.value(), scan, deadline)
-        else:
-            panel.setFailMsg(scan, '號碼格式錯誤')
-            timesheet.latest_person = None
-            return
-        # Highlight latest checked-in one
-        # self.lateTimeEdit.setDisabled(True)
-        self.uiPunchStatProg.setValue(sum(timesheet.df.iloc[1:].checked))
-        print(matches)
-        if not matches.empty:
+        iloc_grp = self.uiGrpColSpn.value()
+        iloc_bar = self.uiBarColSpn.value()
+        latetime_pm = self.uiPmLateTime.time().toPyTime()
+        latetime_ta = self.uiTaLateTime.time().toPyTime()
+
+        try:
+            # Lookup their group
+            group = timesheet.lookup(iloc_bar, scan).iloc[:, iloc_grp - 1]
+            latetime = latetime_pm if group.isin(['籌員']).all() \
+                else latetime_ta
+            deadline = datetime.combine(date.today(), latetime)
+            # Punch clock in timesheet
+            matches = timesheet.punch(iloc_bar, scan, deadline)
+            if matches.empty:
+                raise KeyError()
+            print(matches)
+            # Highlight latest checked-in one
+            self.updateProgressBar(0x01)
             row = matches.index[0] + 1
             timesheet.updateRange('latest', (row, row), (1, timesheet.columnCount()), LATEST_COLOR)
             focus = timesheet.index(row, 0)
-            self.uiTimesheetFrame.view().scrollTo(focus, QAbstractItemView.PositionAtCenter)
+            self.uiTimesheetFrame.view() \
+                .scrollTo(focus, QAbstractItemView.PositionAtCenter)
+            self.uiInputEdit.clear()
             panel.setOkayMsg(matches, deadline)
-        else:
+        except ValueError:
+            panel.setFailMsg(scan, '號碼格式錯誤')
+        except KeyError:
             panel.setFailMsg(scan, '號碼不存在')
-            timesheet.latest_person = None
 
     @slot(int)
     def updateSpreadSheet(self, flags=0b1111):
@@ -136,19 +137,29 @@ class MainWindow(QMainWindow):
         # Update order determined by the spinboxes read/write operations
         if flags & 0b0001:  # shape of spreadsheet
             cols = timesheet.columnCount()
-            self.uiBarColumnSpn.setMaximum(cols)
-            self.uiNfcColumnSpn.setMaximum(cols)
+            self.uiBarColSpn.setMaximum(cols)
+            self.uiGrpColSpn.setMaximum(cols)
             rows = timesheet.rowCount()
-            self.uiTotalSpn.setMaximum(rows - 1)
-            self.uiTotalSpn.setValue(rows - 1)
+            self.uiAbsenceSpn.setMaximum(rows - 1)
         if flags & 0b0010:  # columnhead of spreadsheet
             pass
         if flags & 0b0100:  # ranges in spreadsheet
             rows = 2, timesheet.rowCount()
-            cols_bar = (self.uiBarColumnSpn.value(), ) * 2
-            cols_nfc = (self.uiNfcColumnSpn.value(), ) * 2
+            cols_bar = (self.uiBarColSpn.value(), ) * 2
+            cols_grp = (self.uiGrpColSpn.value(), ) * 2
             timesheet.updateRange('barcode', rows, cols_bar, BARCODE_COLOR)
-            timesheet.updateRange('nfccode', rows, cols_nfc, NFCCODE_COLOR)
+            timesheet.updateRange('grpcode', rows, cols_grp, GRPCODE_COLOR)
+
+    @slot(int)
+    def updateProgressBar(self, flags=0b11):
+        timesheet = self.context.timesheet
+        if flags & 0b01:  # set value
+            checked = sum(timesheet.df.iloc[1:].checked)
+            self.uiPunchStatProg.setValue(checked)
+        if flags & 0b10:  # set maximum
+            expected = self.uiAbsenceSpn.maximum()
+            absented = self.uiAbsenceSpn.value()
+            self.uiPunchStatProg.setMaximum(expected - absented)
 
     @slot(QFocusEvent)
     def warnFocusEvent(self, event):

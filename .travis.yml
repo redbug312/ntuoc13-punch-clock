@@ -1,6 +1,7 @@
 language: python
 python: 3.6
 os: linux
+dist: focal
 
 install: pip3 install -r requirements/base.txt
 script: make build

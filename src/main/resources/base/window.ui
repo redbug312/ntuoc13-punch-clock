@@ -41,42 +41,42 @@
          <item>
           <layout class="QGridLayout" name="gridLayout" columnstretch="0,0">
            <item row="1" column="1">
-            <widget class="AlphabetSpinBox" name="uiNfcColumnSpn">
+            <widget class="AlphabetSpinBox" name="uiGrpColSpn">
              <property name="minimum">
               <number>1</number>
              </property>
              <property name="value">
-              <number>7</number>
+              <number>4</number>
              </property>
             </widget>
            </item>
            <item row="1" column="0">
-            <widget class="QLabel" name="uiNfcColumnLbl">
+            <widget class="QLabel" name="uiGrpColLbl">
              <property name="text">
-              <string>卡號欄位</string>
+              <string>組別欄位</string>
              </property>
              <property name="buddy">
-              <cstring>uiNfcColumnSpn</cstring>
+              <cstring>uiGrpColSpn</cstring>
              </property>
             </widget>
            </item>
-           <item row="0" column="1">
-            <widget class="AlphabetSpinBox" name="uiBarColumnSpn">
+           <item row="2" column="0">
+            <widget class="QLabel" name="uiBarColLbl">
+             <property name="text">
+              <string>學號欄位</string>
+             </property>
+             <property name="buddy">
+              <cstring>uiBarColSpn</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="AlphabetSpinBox" name="uiBarColSpn">
              <property name="minimum">
               <number>1</number>
              </property>
              <property name="value">
               <number>6</number>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="uiBarColumnLbl">
-             <property name="text">
-              <string>學號欄位</string>
-             </property>
-             <property name="buddy">
-              <cstring>uiBarColumnSpn</cstring>
              </property>
             </widget>
            </item>
@@ -122,60 +122,6 @@
             </widget>
            </item>
            <item>
-            <layout class="QGridLayout" name="gridLayout_5">
-             <item row="1" column="1">
-              <widget class="QSpinBox" name="uiTotalSpn"/>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="uiTotalLbl">
-               <property name="text">
-                <string>應到人數</string>
-               </property>
-               <property name="buddy">
-                <cstring>uiTotalSpn</cstring>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <widget class="QLabel" name="uiDeadlineLbl">
-               <property name="text">
-                <string>遲到時間</string>
-               </property>
-               <property name="buddy">
-                <cstring>uiDeadlineTime</cstring>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QTimeEdit" name="uiDeadlineTime">
-               <property name="displayFormat">
-                <string>hh:mm</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="uiOverwriteChk">
-             <property name="text">
-              <string>寫入學生證卡號</string>
-             </property>
-             <property name="icon">
-              <iconset theme="view-certificate-add">
-               <normaloff>../../../../../../../../.designer/backup</normaloff>../../../../../../../../.designer/backup</iconset>
-             </property>
-             <property name="iconSize">
-              <size>
-               <width>16</width>
-               <height>16</height>
-              </size>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
             <widget class="QCheckBox" name="uiPanelChk">
              <property name="text">
               <string>顯示掃描資料</string>
@@ -191,6 +137,57 @@
               </size>
              </property>
             </widget>
+           </item>
+           <item>
+            <layout class="QGridLayout" name="gridLayout_5">
+             <item row="2" column="1">
+              <widget class="QSpinBox" name="uiAbsenceSpn"/>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="uiAbsenceLbl">
+               <property name="text">
+                <string>請假人數</string>
+               </property>
+               <property name="buddy">
+                <cstring>uiAbsenceSpn</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QTimeEdit" name="uiPmLateTime">
+               <property name="displayFormat">
+                <string>hh:mm</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="uiPmLateLbl">
+               <property name="text">
+                <string>籌員遲到</string>
+               </property>
+               <property name="buddy">
+                <cstring>uiPmLateTime</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="uiTaLateLbl">
+               <property name="text">
+                <string>隊輔遲到</string>
+               </property>
+               <property name="buddy">
+                <cstring>uiTaLateTime</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QTimeEdit" name="uiTaLateTime">
+               <property name="displayFormat">
+                <string>hh:mm</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
           </layout>
          </item>
@@ -224,6 +221,9 @@
         </item>
         <item>
          <widget class="QPushButton" name="uiFileSaveBtn">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>儲存簽到結果(&amp;S)</string>
           </property>
@@ -316,13 +316,13 @@
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>uiBarColumnSpn</tabstop>
-  <tabstop>uiNfcColumnSpn</tabstop>
+  <tabstop>uiGrpColSpn</tabstop>
+  <tabstop>uiBarColSpn</tabstop>
   <tabstop>uiInputEdit</tabstop>
-  <tabstop>uiDeadlineTime</tabstop>
-  <tabstop>uiTotalSpn</tabstop>
-  <tabstop>uiOverwriteChk</tabstop>
   <tabstop>uiPanelChk</tabstop>
+  <tabstop>uiPmLateTime</tabstop>
+  <tabstop>uiTaLateTime</tabstop>
+  <tabstop>uiAbsenceSpn</tabstop>
   <tabstop>uiFileOpenBtn</tabstop>
   <tabstop>uiFileSaveBtn</tabstop>
   <tabstop>tabWidget</tabstop>
