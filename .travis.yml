@@ -12,8 +12,6 @@ jobs:
     addons: {apt: {packages: [python3-pip, python3-setuptools]}}
     before_install:
     - gem install --no-document fpm
-    - python -m venv env
-    - source env/bin/activate
     deploy:
       provider: releases
       token: ${GITHUB_TOKEN}
@@ -26,8 +24,6 @@ jobs:
     before_install:
     - choco install make nsis vcredist2010 vcredist2012 vcredist2015
     - choco install python3 --version=3.6.8
-    - python -m venv env
-    - source env/Scripts/activate
     after_success:
     - mv target/ntuoc13-punch-clockSetup.exe
          target/ntuoc13-punch-clock-installer.exe
