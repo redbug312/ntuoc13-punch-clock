@@ -32,8 +32,8 @@ class DropableWidget:
     def dropEvent(self, event):
         urls = event.mimeData().urls()
         if len(urls) == 1:
-            url = urls[0].url()
-            if url.startswith('file://') and self.isFileDropable(url):
-                self.dropped.emit(url[7:])  # len('file://') == 7
+            url = urls[0]
+            if self.isFileDropable(url):
+                self.dropped.emit(url.toLocalFile())
                 event.accept()
         event.ignore()

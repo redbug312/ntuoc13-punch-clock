@@ -50,4 +50,4 @@ class PlaceholderFrame(QFrame, DropableWidget):
     # QWidget overriden methods
 
     def isFileDropable(self, url):
-        return url.endswith('.xlsx')
+        return url.isLocalFile() and url.url().endswith('.xlsx')
