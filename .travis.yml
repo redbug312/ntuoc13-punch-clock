@@ -9,15 +9,33 @@ script: make build
 jobs:
   include:
   - os: linux
+    dist: bionic
     addons: {apt: {packages: [python3-pip, python3-setuptools]}}
     before_install:
     - gem install --no-document fpm
+    after_success:
+    - mv target/ntuoc13-punch-clock.deb
+         target/ntuoc13-punch-clock-bionic.deb
     deploy:
       provider: releases
       token: ${GITHUB_TOKEN}
-      file: target/ntuoc13-punch-clock.deb
       edge: true
       on: {tags: true}
+      file: target/ntuoc13-punch-clock-bionic.deb
+  - os: linux
+    dist: focal
+    addons: {apt: {packages: [python3-pip, python3-setuptools]}}
+    before_install:
+    - gem install --no-document fpm
+    after_success:
+    - mv target/ntuoc13-punch-clock.deb
+         target/ntuoc13-punch-clock-focal.deb
+    deploy:
+      provider: releases
+      token: ${GITHUB_TOKEN}
+      edge: true
+      on: {tags: true}
+      file: target/ntuoc13-punch-clock-focal.deb
   - os: windows
     language: shell
     env: PATH=/c/Python36:/c/Python36/Scripts:$PATH
