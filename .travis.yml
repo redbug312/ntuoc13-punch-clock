@@ -3,51 +3,44 @@ python: 3.6
 os: linux
 dist: focal
 
-install: pip3 install -r requirements/base.txt
 script: make build
+
+deploy:
+  provider: releases
+  token: ${GITHUB_TOKEN}
+  edge: true
+  on: {tags: true}
 
 jobs:
   include:
   - os: linux
     dist: bionic
     addons: {apt: {packages: [python3-pip, python3-setuptools]}}
-    before_install:
+    install:
     - gem install --no-document fpm
-    after_success:
+    before_deploy:
     - mv target/ntuoc13-punch-clock.deb
          target/ntuoc13-punch-clock-bionic.deb
     deploy:
-      provider: releases
-      token: ${GITHUB_TOKEN}
-      edge: true
-      on: {tags: true}
       file: target/ntuoc13-punch-clock-bionic.deb
   - os: linux
     dist: focal
     addons: {apt: {packages: [python3-pip, python3-setuptools]}}
-    before_install:
+    install:
     - gem install --no-document fpm
-    after_success:
+    before_deploy:
     - mv target/ntuoc13-punch-clock.deb
          target/ntuoc13-punch-clock-focal.deb
     deploy:
-      provider: releases
-      token: ${GITHUB_TOKEN}
-      edge: true
-      on: {tags: true}
       file: target/ntuoc13-punch-clock-focal.deb
   - os: windows
     language: shell
     env: PATH=/c/Python36:/c/Python36/Scripts:$PATH
-    before_install:
+    install:
     - choco install make nsis vcredist2010 vcredist2012 vcredist2015
     - choco install python3 --version=3.6.8
-    after_success:
+    before_deploy:
     - mv target/ntuoc13-punch-clockSetup.exe
          target/ntuoc13-punch-clock-installer.exe
     deploy:
-      provider: releases
-      token: ${GITHUB_TOKEN}
       file: target/ntuoc13-punch-clock-installer.exe
-      edge: true
-      on: {tags: true}
