@@ -2,7 +2,7 @@
 import sys
 from fbs_runtime.application_context.PyQt5 import ApplicationContext, cached_property
 from PyQt5.QtCore import QUrl
-from PyQt5.QtGui import QFont, QPixmap
+from PyQt5.QtGui import QFont, QIcon, QPixmap
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 
 from window import MainWindow, PanelWindow
@@ -42,6 +42,16 @@ class AppContext(ApplicationContext):
     def pixmapExcel(self):
         path = self.get_resource('microsoft-excel.png')
         return QPixmap(path)
+
+    @cached_property
+    def iconCheckboxBlank(self):
+        path = self.get_resource('checkbox-blank-outline.svg')
+        return QIcon(path)
+
+    @cached_property
+    def iconCheckboxMarked(self):
+        path = self.get_resource('checkbox-marked.svg')
+        return QIcon(path)
 
     @cached_property
     def sound(self):
