@@ -51,8 +51,8 @@ class TimesheetModel(SpreadSheetModel):
         if sanitized != self._lookup_cache[0]:
             # Case-insensitive, for barcode lookups only
             self._lookup_cache = \
-                (sanitized,
-                 self.df.iloc[:, icol - 1].str.upper() == sanitized.upper())
+                (sanitized, self.df.iloc[:, icol - 1]
+                 .str.strip().str.upper() == sanitized.strip().upper())
         return self._lookup_cache[1]
 
     def _sanitize_target(self, target):
