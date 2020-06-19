@@ -132,6 +132,7 @@ class MainWindow(QMainWindow):
         focus = timesheet.index(row, 0)
         self.uiTimesheetFrame.view() \
             .scrollTo(focus, QAbstractItemView.PositionAtCenter)
+        self.context.sound.play()
         panel.setOkayMsg(matches, deadline)
 
     @slot(int)
