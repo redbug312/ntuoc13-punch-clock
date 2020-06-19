@@ -179,6 +179,8 @@ class MainWindow(QMainWindow):
 class PanelWindow(QMainWindow):
     def __init__(self, context, parent=None):
         super().__init__(parent)
+        self.context = context
+
         uic.loadUi(context.uiPanel, self)
         self.setFont(context.fontSans)
         self._focus_message = self.uiInfoLbl.text()
@@ -196,28 +198,30 @@ class PanelWindow(QMainWindow):
         pug = cleandoc(f"""
             div(align='center' style='font-size:36pt; color:#2E3436;')
               p 掃描條碼失敗
-              p(style='font-size:18pt; color:#888A85;') {reason}：{scan}
+              if {len(scan) <= 10}
+                p(style='font-size:18pt; color:#888A85;') {reason}：{scan}
+              else
+                p(style='font-size:18pt; color:#888A85;') {reason}：{scan[:10]}...
         """)
         html = pypugjs.simple_convert(pug)
         self.uiInfoLbl.setText(html)
 
     def setOkayMsg(self, matches, deadline):
-        late_mins = int((matches.iloc[0, 2] - deadline).total_seconds() / 60)
-        informs = matches.iloc[0, 3:6].to_dict()
+        columnhead = self.context.timesheet.columnhead()
+        print(columnhead)
+        match = matches.iloc[0]
+        informs = zip(columnhead.reindex(range(3)), match.reindex(range(3)))
         pug = cleandoc(f"""
             div(align='center' style='font-size:36pt; color:#2E3436;')
               table
-                each key, val in {list(informs.items())}
+                each key, val in {list(informs)}
                   tr
                     td(align='right')= key + '：'
                     td= val
-              if {late_mins} <= 0
-                p(style='color:#4E9A06') 準時簽到
-              else  // elif/elsif/else-if seems broken
-                if {late_mins} <= 5
-                  p(style='color:#4E9A06') 遲到 {late_mins} 分鐘
-                else
-                  p(style='color:#A40000') 遲到 {late_mins} 分鐘
+              if not {match.penalty}
+                p(style='color:#4E9A06') {match.brief}
+              else
+                p(style='color:#A40000') {match.brief}
         """)
         html = pypugjs.simple_convert(pug)
         self.uiInfoLbl.setText(html)
