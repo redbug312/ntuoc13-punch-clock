@@ -15,6 +15,12 @@ def decide_penalty(expected, outcome):
         else inf  # to be determined by case
 
 
+def provide_brief(expected, outcome):
+    mins = int((outcome - expected).total_seconds() / 60)
+    return '準時簽到' if mins <= 0 \
+        else f'遲到 {mins} 分鐘'
+
+
 class TimesheetModel(SpreadSheetModel):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -26,25 +32,29 @@ class TimesheetModel(SpreadSheetModel):
         self.prepends = pd.DataFrame({
             'checked': {'name': '簽到狀況',   'init': False},
             'penalty': {'name': '酌扣獎勵金', 'init': None},
+            'brief':   {'name': '簽到狀況',   'init': None},
             'time':    {'name': '簽到時間',   'init': None},
         }).transpose()
 
     def punch(self, icol, target, deadline):
-        columnhead = self.df.iloc[0]
         boolmask = self._lookup_boolmask(icol, target)
         if not self.df.loc[boolmask].checked.all():
             now = datetime.now()
             penalty = decide_penalty(deadline, now)
+            brief = provide_brief(deadline, now)
             self.layoutAboutToBeChanged.emit()
-            self.df.loc[boolmask, :len(self.prepends)] = (True, penalty, now)
+            self.df.loc[boolmask, :len(self.prepends)] = \
+                (True, penalty, brief, now)
             self.layoutChanged.emit()
         # Parameter `target` can be 'r089220750', returned ['R08922075']
-        return self.df.loc[boolmask].rename(columns=columnhead)
+        return self.df.loc[boolmask]
 
     def lookup(self, icol, target):
-        columnhead = self.df.iloc[0]
         boolmask = self._lookup_boolmask(icol, target)
-        return self.df.loc[boolmask].rename(columns=columnhead)
+        return self.df.loc[boolmask]
+
+    def columnhead(self):
+        return self.df.iloc[0]
 
     def _lookup_boolmask(self, icol, target):
         sanitized = self._sanitize_target(target)
