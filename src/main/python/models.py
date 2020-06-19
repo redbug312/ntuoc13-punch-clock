@@ -33,10 +33,6 @@ class TimesheetModel(SpreadSheetModel):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._lookup_cache = (None, None)
-        self.sanitizes = {
-            r'[A-Za-z]\d{2}\w\d{5}': (lambda x: x),
-            r'[A-Za-z]\d{2}\w\d{6}': (lambda x: x[:-1]),
-        }
         self.prepends = pd.DataFrame(PREPENDS).transpose()
 
     def punch(self, icol, target, deadline):
@@ -67,7 +63,11 @@ class TimesheetModel(SpreadSheetModel):
         return self._lookup_cache[1]
 
     def _sanitize_target(self, target):
-        for regex, transform in self.sanitizes.items():
+        sanitizes = {
+            r'[A-Za-z]\d{2}\w\d{5}': (lambda x: x),
+            r'[A-Za-z]\d{2}\w\d{6}': (lambda x: x[:-1]),
+        }
+        for regex, transform in sanitizes.items():
             if re.fullmatch(regex, target):
                 return transform(target)
         else:

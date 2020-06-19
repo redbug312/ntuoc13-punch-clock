@@ -20,7 +20,7 @@ class AppContext(ApplicationContext):
 
     @cached_property
     def panel(self):
-        return PanelWindow(self)
+        return PanelWindow(self, parent=self.window)
 
     @cached_property
     def timesheet(self):
@@ -40,7 +40,8 @@ class AppContext(ApplicationContext):
 
     @cached_property
     def pixmapExcel(self):
-        return QPixmap(self.get_resource('microsoft-excel.png'))
+        path = self.get_resource('microsoft-excel.png')
+        return QPixmap(path)
 
     @cached_property
     def sound(self):
