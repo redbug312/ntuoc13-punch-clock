@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import re
 import pypugjs
+import inspect
 from datetime import date, datetime
-from inspect import cleandoc
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, QTime, pyqtSlot as slot
 from PyQt5.QtGui import QColor, QPalette, QFocusEvent
@@ -125,7 +125,6 @@ class MainWindow(QMainWindow):
             self.uiInputEdit.clear()
 
         # Highlight latest checked-in one
-        self.updateProgressBar(0x01)
         row = matches.index[0] + 1
         timesheet.updateRange('latest', (row, row),
                               (1, timesheet.columnCount()), LATEST_COLOR)
@@ -133,6 +132,7 @@ class MainWindow(QMainWindow):
         self.uiTimesheetFrame.view() \
             .scrollTo(focus, QAbstractItemView.PositionAtCenter)
         self.context.sound.play()
+        self.updateProgressBar(0x01)
         panel.setOkayMsg(matches, deadline)
 
     @slot(int)
@@ -195,7 +195,7 @@ class PanelWindow(QMainWindow):
             self.uiInfoLbl.setText(self._focus_message)
 
     def setFailMsg(self, scan, reason):
-        pug = cleandoc(f"""
+        pug = inspect.cleandoc(f"""
             div(align='center' style='font-size:36pt; color:#2E3436;')
               p 掃描條碼失敗
               if {len(scan) <= 10}
@@ -208,10 +208,9 @@ class PanelWindow(QMainWindow):
 
     def setOkayMsg(self, matches, deadline):
         columnhead = self.context.timesheet.columnhead()
-        print(columnhead)
         match = matches.iloc[0]
         informs = zip(columnhead.reindex(range(3)), match.reindex(range(3)))
-        pug = cleandoc(f"""
+        pug = inspect.cleandoc(f"""
             div(align='center' style='font-size:36pt; color:#2E3436;')
               table
                 each key, val in {list(informs)}
