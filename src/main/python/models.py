@@ -32,7 +32,7 @@ PREPENDS = {
 class TimesheetModel(SpreadSheetModel):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._lookup_cache = (None, None)
+        self._lookup_cache = ((None, None), None)
         self.prepends = pd.DataFrame(PREPENDS).transpose()
 
     def punch(self, icol, target, deadline):
@@ -55,10 +55,10 @@ class TimesheetModel(SpreadSheetModel):
 
     def _lookup_boolmask(self, icol, target):
         sanitized = self._sanitize_target(target)
-        if sanitized != self._lookup_cache[0]:
+        if (icol, sanitized) != self._lookup_cache[0]:
             # Case-insensitive, for barcode lookups only
             self._lookup_cache = \
-                (sanitized, self.df.iloc[:, icol - 1]
+                ((icol, sanitized), self.df.iloc[:, icol - 1]
                  .str.strip().str.upper() == sanitized.strip().upper())
         return self._lookup_cache[1]
 
