@@ -7,18 +7,26 @@ from datetime import datetime
 from qspreadsheet import SpreadSheetModel
 
 
-def decide_penalty(expected, outcome):
-    mins = int((outcome - expected).total_seconds() / 60)
+def decide_penalty(deadline, now):
+    mins = int((now - deadline).total_seconds() / 60)
     return 0 if mins <= 5 \
         else 100 if mins <= 10 \
         else 200 if mins <= 30 \
         else inf  # to be determined by case
 
 
-def provide_brief(expected, outcome):
-    mins = int((outcome - expected).total_seconds() / 60)
+def provide_brief(deadline, now):
+    mins = int((now - deadline).total_seconds() / 60)
     return '準時簽到' if mins <= 0 \
         else f'遲到 {mins} 分鐘'
+
+
+PREPENDS = {
+    'checked': {'name': '簽到紀錄', 'init': False, 'punch': (lambda *_: True)},
+    'penalty': {'name': '酌減獎勵', 'init': None,  'punch': decide_penalty},
+    'brief':   {'name': '簽到狀況', 'init': None,  'punch': provide_brief},
+    'moment':  {'name': '簽到時間', 'init': None,  'punch': (lambda _, now: now)},
+}
 
 
 class TimesheetModel(SpreadSheetModel):
@@ -29,22 +37,15 @@ class TimesheetModel(SpreadSheetModel):
             r'[A-Za-z]\d{2}\w\d{5}': (lambda x: x),
             r'[A-Za-z]\d{2}\w\d{6}': (lambda x: x[:-1]),
         }
-        self.prepends = pd.DataFrame({
-            'checked': {'name': '簽到狀況',   'init': False},
-            'penalty': {'name': '酌扣獎勵金', 'init': None},
-            'brief':   {'name': '簽到狀況',   'init': None},
-            'time':    {'name': '簽到時間',   'init': None},
-        }).transpose()
+        self.prepends = pd.DataFrame(PREPENDS).transpose()
 
     def punch(self, icol, target, deadline):
         boolmask = self._lookup_boolmask(icol, target)
         if not self.df.loc[boolmask].checked.all():
-            now = datetime.now()
-            penalty = decide_penalty(deadline, now)
-            brief = provide_brief(deadline, now)
+            params = (deadline, datetime.now())
             self.layoutAboutToBeChanged.emit()
             self.df.loc[boolmask, :len(self.prepends)] = \
-                (True, penalty, brief, now)
+                tuple(map(lambda f: f(*params), self.prepends.punch))
             self.layoutChanged.emit()
         # Parameter `target` can be 'r089220750', returned ['R08922075']
         return self.df.loc[boolmask]
