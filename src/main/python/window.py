@@ -4,7 +4,7 @@ import pypugjs
 import inspect
 from datetime import date, datetime
 from PyQt5 import uic
-from PyQt5.QtCore import Qt, QTime, pyqtSlot as slot
+from PyQt5.QtCore import Qt, QSize, QTime, pyqtSlot as slot
 from PyQt5.QtGui import QColor, QPalette, QFocusEvent
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QAbstractItemView, QTableView, QFrame
 
@@ -29,6 +29,10 @@ class MainWindow(QMainWindow):
         tableview.setModel(context.timesheet)
         tableview.setTabKeyNavigation(False)
         tableview.setSelectionMode(QAbstractItemView.NoSelection)
+
+        checkboxes = (context.iconCheckboxBlank, context.iconCheckboxMarked)
+        context.timesheet.setCheckboxIcons(*checkboxes)
+        tableview.setIconSize(QSize(18, 18))
 
         self.uiPmLateTime.setTime(QTime.currentTime())
         self.uiTaLateTime.setTime(QTime.currentTime())

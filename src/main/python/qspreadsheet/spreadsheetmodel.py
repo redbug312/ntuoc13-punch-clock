@@ -13,6 +13,7 @@ class SpreadSheetModel(QAbstractTableModel):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.df = pd.DataFrame()
+        self.checkboxes = None
         self.ranges = dict()
         self.formats = {
             bool:         (lambda x: ''),
@@ -47,6 +48,9 @@ class SpreadSheetModel(QAbstractTableModel):
         self.dataChanged.emit(*r.corners())
         self.ranges[name] = r
 
+    def setCheckboxIcons(self, blank, marked):
+        self.checkboxes = (blank, marked)
+
     # QAbstractItemModel overriden methods
 
     def data(self, index, role=Qt.DisplayRole):
@@ -56,9 +60,13 @@ class SpreadSheetModel(QAbstractTableModel):
             return str() if pd.isna(value) \
                 else self.formats[vtype](value) if vtype in self.formats \
                 else str(value)
+        elif role == Qt.DecorationRole:
+            value = self.df.iloc[index.row(), index.column()]
+            if type(value) is bool and self.checkboxes:
+                return self.checkboxes[int(value)]
         elif role == Qt.CheckStateRole:
             value = self.df.iloc[index.row(), index.column()]
-            if type(value) is bool:
+            if type(value) is bool and not self.checkboxes:
                 return Qt.Checked if value else Qt.Unchecked
         elif role == Qt.ForegroundRole:
             # Column head is grey out
