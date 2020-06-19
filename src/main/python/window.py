@@ -198,7 +198,10 @@ class PanelWindow(QMainWindow):
         pug = cleandoc(f"""
             div(align='center' style='font-size:36pt; color:#2E3436;')
               p 掃描條碼失敗
-              p(style='font-size:18pt; color:#888A85;') {reason}：{scan}
+              if {len(scan) <= 10}
+                p(style='font-size:18pt; color:#888A85;') {reason}：{scan}
+              else
+                p(style='font-size:18pt; color:#888A85;') {reason}：{scan[:10]}...
         """)
         html = pypugjs.simple_convert(pug)
         self.uiInfoLbl.setText(html)
