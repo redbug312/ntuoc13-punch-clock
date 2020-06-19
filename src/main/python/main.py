@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 import sys
 from fbs_runtime.application_context.PyQt5 import ApplicationContext, cached_property
+from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QFont, QPixmap
+from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 
 from window import MainWindow, PanelWindow
 from models import TimesheetModel
@@ -39,6 +41,14 @@ class AppContext(ApplicationContext):
     @cached_property
     def pixmapExcel(self):
         return QPixmap(self.get_resource('microsoft-excel.png'))
+
+    @cached_property
+    def sound(self):
+        path = self.get_resource('stairs.ogg')
+        content = QMediaContent(QUrl.fromLocalFile(path))
+        player = QMediaPlayer(flags=QMediaPlayer.LowLatency)
+        player.setMedia(content)
+        return player
 
     @cached_property
     def fontSans(self):
