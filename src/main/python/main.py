@@ -55,7 +55,7 @@ class AppContext(ApplicationContext):
 
     @cached_property
     def sound(self):
-        path = self.get_resource('stairs.ogg')
+        path = self.get_resource('stairs.mp3')
         content = QMediaContent(QUrl.fromLocalFile(path))
         player = QMediaPlayer(flags=QMediaPlayer.LowLatency)
         player.setMedia(content)
