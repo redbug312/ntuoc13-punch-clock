@@ -32,7 +32,7 @@ class MainWindow(QMainWindow):
 
         checkboxes = (context.iconCheckboxBlank, context.iconCheckboxMarked)
         context.timesheet.setCheckboxIcons(*checkboxes)
-        tableview.setIconSize(QSize(18, 18))
+        tableview.setIconSize(self.iconSize() * 0.8)
 
         self.uiPmLateTime.setTime(QTime.currentTime())
         self.uiTaLateTime.setTime(QTime.currentTime())
