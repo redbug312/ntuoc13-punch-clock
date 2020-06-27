@@ -13,9 +13,10 @@ else
 endif
 
 
-env: requirements/base.txt
-	test -d env || $(PYTHON3) -m venv env
-	$(ENV) $(PYTHON3) -m pip install -r $< || rm -r env
+env: $(patsubst %,requirements/%.txt, base $(REQUIREMENTS))
+	$(PYTHON3) -m venv env
+	$(ENV) $(PYTHON3) -m pip install -r $^
+	touch $@  # update timestamp
 
 
 all: start
