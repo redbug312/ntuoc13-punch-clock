@@ -139,7 +139,7 @@ class MainWindow(QMainWindow):
             .scrollTo(focus, QAbstractItemView.PositionAtCenter)
         self.context.sound.play()
         self.updateProgressBar(0x01)
-        panel.setOkayMsg(matches, deadline)
+        panel.setOkayMsg(iloc_bar, scan)
 
     @slot(int)
     def updateSpreadSheet(self, flags=0b1111):
@@ -213,9 +213,10 @@ class PanelWindow(QMainWindow):
         html = pypugjs.simple_convert(pug)
         self.uiInfoLbl.setText(html)
 
-    def setOkayMsg(self, matches, deadline):
-        columnhead = self.context.timesheet.columnhead()
-        match = matches.iloc[0]
+    def setOkayMsg(self, iloc, scan):
+        timesheet = self.context.timesheet
+        columnhead = timesheet.columnhead()
+        match = timesheet.lookup(iloc, scan).iloc[0]
         informs = zip(columnhead.reindex(range(3)), match.reindex(range(3)))
         pug = inspect.cleandoc(f"""
             div(align='center' style='font-size:36pt; color:#2E3436;')
