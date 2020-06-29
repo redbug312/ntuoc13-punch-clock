@@ -123,8 +123,10 @@ class MainWindow(QMainWindow):
             print(matches)
         except ValueError:
             panel.setFailMsg(scan, '號碼格式錯誤')
+            return
         except KeyError:
             panel.setFailMsg(scan, '號碼不存在')
+            return
         finally:
             self.uiInputEdit.clear()
 
@@ -199,13 +201,14 @@ class PanelWindow(QMainWindow):
             self.uiInfoLbl.setText(self._focus_message)
 
     def setFailMsg(self, scan, reason):
+        def truncate(string, length):
+            return string if len(string) <= length \
+                else string[:length] + '&hellip;'
         pug = inspect.cleandoc(f"""
             div(align='center' style='font-size:36pt; color:#2E3436;')
               p 掃描條碼失敗
-              if {len(scan) <= 10}
-                p(style='font-size:18pt; color:#888A85;') {reason}：{scan}
-              else
-                p(style='font-size:18pt; color:#888A85;') {reason}：{scan[:10]}...
+              p(style='font-size:18pt; color:#888A85;')
+                | {reason}：{truncate(scan, 10)}
         """)
         html = pypugjs.simple_convert(pug)
         self.uiInfoLbl.setText(html)
