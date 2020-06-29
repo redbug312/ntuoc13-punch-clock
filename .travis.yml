@@ -17,7 +17,7 @@ jobs:
   include:
   - os: linux
     dist: bionic
-    addons: {apt: {packages: [python3-pip, python3-setuptools, libqt5multimedia5-plugins]}}
+    addons: {apt: {packages: [python3-pip, python3-setuptools]}}
     env:
     - DEPLOY=target/ntuoc13-punch-clock-bionic.deb
     install:
@@ -26,9 +26,10 @@ jobs:
     - mv target/ntuoc13-punch-clock.deb $DEPLOY
   - os: linux
     dist: focal
-    addons: {apt: {packages: [python3-pip, python3-setuptools, libqt5multimedia5-plugins]}}
+    addons: {apt: {packages: [python3-pip, python3-setuptools]}}
     env:
     - DEPLOY=target/ntuoc13-punch-clock-focal.deb
+    - REQUIREMENTS=focal
     install:
     - gem install --no-document fpm
     before_deploy:
