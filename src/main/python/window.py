@@ -6,7 +6,7 @@ from datetime import date, datetime
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, QSize, QTime, pyqtSlot as slot
 from PyQt5.QtGui import QColor, QPalette, QFocusEvent
-from PyQt5.QtWidgets import QMainWindow, QFileDialog, QAbstractItemView, QTableView, QFrame
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QAbstractItemView, QTableView, QFrame, QMessageBox
 
 
 LATEST_COLOR  = QColor(240, 198, 116, 50)
@@ -19,6 +19,7 @@ class MainWindow(QMainWindow):
     def __init__(self, context, parent=None):
         super().__init__(parent)
         self.context = context
+        self._exit_confirm_flag = False
 
         placeholder, tableview = QFrame(), QTableView()
         uic.loadUi(context.ui, self)
@@ -98,6 +99,7 @@ class MainWindow(QMainWindow):
         if not xlsx.endswith('.xlsx'):
             xlsx += '.xlsx'
         timesheet.save(xlsx)
+        self._exit_confirm_flag = False
 
     @slot()
     def scanCard(self):
@@ -139,6 +141,7 @@ class MainWindow(QMainWindow):
             .scrollTo(focus, QAbstractItemView.PositionAtCenter)
         self.context.sound.play()
         self.updateProgressBar(0x01)
+        self._exit_confirm_flag = True
         panel.setOkayMsg(iloc_bar, scan)
 
     @slot(int)
@@ -159,6 +162,7 @@ class MainWindow(QMainWindow):
             cols_grp = (self.uiGrpColSpn.value(), ) * 2
             timesheet.updateRange('barcode', rows, cols_bar, BARCODE_COLOR)
             timesheet.updateRange('grpcode', rows, cols_grp, GRPCODE_COLOR)
+            # TODO set timesheet columns
 
     @slot(int)
     def updateProgressBar(self, flags=0b11):
@@ -180,6 +184,20 @@ class MainWindow(QMainWindow):
         if event.lostFocus():
             palette.setColor(QPalette.Base, UNFOCUS_COLOR.lighter())
         self.uiInputEdit.setPalette(palette)
+
+    # QWidget overriden methods
+
+    def closeEvent(self, event):
+        if not self._exit_confirm_flag:
+            event.accept()
+            return
+        title = self.context.build_settings['app_name']
+        text = '上次儲存之後又有新的簽到紀錄。\n仍要退出簽到程式？'
+        reply = QMessageBox.question(self, title, text)
+        if reply == QMessageBox.Yes:
+            event.accept()
+        else:
+            event.ignore()
 
 
 class PanelWindow(QMainWindow):
