@@ -4,9 +4,9 @@ import pypugjs
 import inspect
 from datetime import date, datetime
 from PyQt5 import uic
-from PyQt5.QtCore import Qt, QSize, QTime, pyqtSlot as slot
+from PyQt5.QtCore import Qt, QTime, pyqtSlot as slot
 from PyQt5.QtGui import QColor, QPalette, QFocusEvent
-from PyQt5.QtWidgets import QMainWindow, QFileDialog, QAbstractItemView, QTableView, QFrame
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QAbstractItemView, QTableView, QFrame, QMessageBox
 
 
 LATEST_COLOR  = QColor(240, 198, 116, 50)
@@ -19,10 +19,12 @@ class MainWindow(QMainWindow):
     def __init__(self, context, parent=None):
         super().__init__(parent)
         self.context = context
+        self._exit_confirm_flag = False
 
         placeholder, tableview = QFrame(), QTableView()
         uic.loadUi(context.ui, self)
         uic.loadUi(context.uiPlaceholder, placeholder)
+        self.statusbar.showMessage('v%s' % self.context.build_settings['version'])
 
         placeholder.uiIconLbl.setPixmap(context.pixmapExcel)
         placeholder.uiTextLbl.setText('尚未開啟簽到名單')
@@ -34,8 +36,10 @@ class MainWindow(QMainWindow):
         context.timesheet.setCheckboxIcons(*checkboxes)
         tableview.setIconSize(self.iconSize() * 0.8)
 
-        self.uiPmLateTime.setTime(QTime.currentTime())
-        self.uiTaLateTime.setTime(QTime.currentTime())
+        current = QTime.currentTime()
+        current = current.addSecs(-current.second())
+        self.uiPmLateTime.setTime(current)
+        self.uiTaLateTime.setTime(current)
         self.uiTimesheetFrame.setPlaceholder(placeholder)
         self.uiTimesheetFrame.setView(tableview)
         self.uiTimesheetFrame.overlay()
@@ -56,6 +60,12 @@ class MainWindow(QMainWindow):
     @slot(str)
     def openXlsx(self, xlsx=None):
         timesheet = self.context.timesheet
+        if self._exit_confirm_flag:
+            title = self.context.build_settings['app_name']
+            text = '上次儲存之後又有新的簽到紀錄。\n仍要重開簽到名單？'
+            reply = QMessageBox.question(self, title, text)
+            if reply == QMessageBox.No:
+                return False
         if xlsx is None:
             dialog = QFileDialog()
             dialog.setAcceptMode(QFileDialog.AcceptOpen)
@@ -98,6 +108,7 @@ class MainWindow(QMainWindow):
         if not xlsx.endswith('.xlsx'):
             xlsx += '.xlsx'
         timesheet.save(xlsx)
+        self._exit_confirm_flag = False
 
     @slot()
     def scanCard(self):
@@ -123,8 +134,10 @@ class MainWindow(QMainWindow):
             print(matches)
         except ValueError:
             panel.setFailMsg(scan, '號碼格式錯誤')
+            return
         except KeyError:
             panel.setFailMsg(scan, '號碼不存在')
+            return
         finally:
             self.uiInputEdit.clear()
 
@@ -137,7 +150,8 @@ class MainWindow(QMainWindow):
             .scrollTo(focus, QAbstractItemView.PositionAtCenter)
         self.context.sound.play()
         self.updateProgressBar(0x01)
-        panel.setOkayMsg(matches, deadline)
+        self._exit_confirm_flag = True
+        panel.setOkayMsg(iloc_bar, scan)
 
     @slot(int)
     def updateSpreadSheet(self, flags=0b1111):
@@ -157,6 +171,7 @@ class MainWindow(QMainWindow):
             cols_grp = (self.uiGrpColSpn.value(), ) * 2
             timesheet.updateRange('barcode', rows, cols_bar, BARCODE_COLOR)
             timesheet.updateRange('grpcode', rows, cols_grp, GRPCODE_COLOR)
+            # TODO set timesheet columns
 
     @slot(int)
     def updateProgressBar(self, flags=0b11):
@@ -179,6 +194,16 @@ class MainWindow(QMainWindow):
             palette.setColor(QPalette.Base, UNFOCUS_COLOR.lighter())
         self.uiInputEdit.setPalette(palette)
 
+    # QWidget overriden methods
+
+    def closeEvent(self, event):
+        if self._exit_confirm_flag:
+            title = self.context.build_settings['app_name']
+            text = '上次儲存之後又有新的簽到紀錄。\n仍要退出簽到程式？'
+            reply = QMessageBox.question(self, title, text)
+            if reply == QMessageBox.No:
+                event.ignore()
+
 
 class PanelWindow(QMainWindow):
     def __init__(self, context, parent=None):
@@ -199,20 +224,22 @@ class PanelWindow(QMainWindow):
             self.uiInfoLbl.setText(self._focus_message)
 
     def setFailMsg(self, scan, reason):
+        def truncate(string, length):
+            return string if len(string) <= length \
+                else string[:length] + '&hellip;'
         pug = inspect.cleandoc(f"""
             div(align='center' style='font-size:36pt; color:#2E3436;')
               p 掃描條碼失敗
-              if {len(scan) <= 10}
-                p(style='font-size:18pt; color:#888A85;') {reason}：{scan}
-              else
-                p(style='font-size:18pt; color:#888A85;') {reason}：{scan[:10]}...
+              p(style='font-size:18pt; color:#888A85;')
+                | {reason}：{truncate(scan, 10)}
         """)
         html = pypugjs.simple_convert(pug)
         self.uiInfoLbl.setText(html)
 
-    def setOkayMsg(self, matches, deadline):
-        columnhead = self.context.timesheet.columnhead()
-        match = matches.iloc[0]
+    def setOkayMsg(self, iloc, scan):
+        timesheet = self.context.timesheet
+        columnhead = timesheet.columnhead()
+        match = timesheet.lookup(iloc, scan).iloc[0]
         informs = zip(columnhead.reindex(range(3)), match.reindex(range(3)))
         pug = inspect.cleandoc(f"""
             div(align='center' style='font-size:36pt; color:#2E3436;')

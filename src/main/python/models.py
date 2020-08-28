@@ -9,7 +9,7 @@ from qspreadsheet import SpreadSheetModel
 
 def decide_penalty(deadline, now):
     mins = int((now - deadline).total_seconds() / 60)
-    return 0 if mins <= 5 \
+    return 0 if mins <= 0 \
         else 100 if mins <= 10 \
         else 200 if mins <= 30 \
         else inf  # to be determined by case
@@ -37,11 +37,12 @@ class TimesheetModel(SpreadSheetModel):
 
     def punch(self, icol, target, deadline):
         boolmask = self._lookup_boolmask(icol, target)
-        if not self.df.loc[boolmask].checked.all():
-            params = (deadline, datetime.now())
+        params = (deadline, datetime.now())
+        fields = tuple(map(lambda f: f(*params), self.prepends.punch))
+        if not self.df.loc[boolmask].checked.all() \
+                or (self.df.loc[boolmask].penalty > fields[1]).any():
             self.layoutAboutToBeChanged.emit()
-            self.df.loc[boolmask, :len(self.prepends)] = \
-                tuple(map(lambda f: f(*params), self.prepends.punch))
+            self.df.loc[boolmask, :len(self.prepends)] = fields
             self.layoutChanged.emit()
         # Parameter `target` can be 'r089220750', returned ['R08922075']
         return self.df.loc[boolmask]
