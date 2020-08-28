@@ -4,7 +4,7 @@ import pypugjs
 import inspect
 from datetime import date, datetime
 from PyQt5 import uic
-from PyQt5.QtCore import Qt, QSize, QTime, pyqtSlot as slot
+from PyQt5.QtCore import Qt, QTime, pyqtSlot as slot
 from PyQt5.QtGui import QColor, QPalette, QFocusEvent
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QAbstractItemView, QTableView, QFrame, QMessageBox
 
@@ -59,6 +59,12 @@ class MainWindow(QMainWindow):
     @slot(str)
     def openXlsx(self, xlsx=None):
         timesheet = self.context.timesheet
+        if self._exit_confirm_flag:
+            title = self.context.build_settings['app_name']
+            text = '上次儲存之後又有新的簽到紀錄。\n仍要重開簽到名單？'
+            reply = QMessageBox.question(self, title, text)
+            if reply == QMessageBox.No:
+                return False
         if xlsx is None:
             dialog = QFileDialog()
             dialog.setAcceptMode(QFileDialog.AcceptOpen)
@@ -190,16 +196,12 @@ class MainWindow(QMainWindow):
     # QWidget overriden methods
 
     def closeEvent(self, event):
-        if not self._exit_confirm_flag:
-            event.accept()
-            return
-        title = self.context.build_settings['app_name']
-        text = '上次儲存之後又有新的簽到紀錄。\n仍要退出簽到程式？'
-        reply = QMessageBox.question(self, title, text)
-        if reply == QMessageBox.Yes:
-            event.accept()
-        else:
-            event.ignore()
+        if self._exit_confirm_flag:
+            title = self.context.build_settings['app_name']
+            text = '上次儲存之後又有新的簽到紀錄。\n仍要退出簽到程式？'
+            reply = QMessageBox.question(self, title, text)
+            if reply == QMessageBox.No:
+                event.ignore()
 
 
 class PanelWindow(QMainWindow):

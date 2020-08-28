@@ -40,7 +40,7 @@ class TimesheetModel(SpreadSheetModel):
         params = (deadline, datetime.now())
         fields = tuple(map(lambda f: f(*params), self.prepends.punch))
         if not self.df.loc[boolmask].checked.all() \
-            or (self.df.loc[boolmask].penalty > fields[1]).any():
+                or (self.df.loc[boolmask].penalty > fields[1]).any():
             self.layoutAboutToBeChanged.emit()
             self.df.loc[boolmask, :len(self.prepends)] = fields
             self.layoutChanged.emit()
