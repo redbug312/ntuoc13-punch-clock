@@ -35,8 +35,10 @@ class MainWindow(QMainWindow):
         context.timesheet.setCheckboxIcons(*checkboxes)
         tableview.setIconSize(self.iconSize() * 0.8)
 
-        self.uiPmLateTime.setTime(QTime.currentTime())
-        self.uiTaLateTime.setTime(QTime.currentTime())
+        current = QTime.currentTime()
+        current = current.addSecs(-current.second())
+        self.uiPmLateTime.setTime(current)
+        self.uiTaLateTime.setTime(current)
         self.uiTimesheetFrame.setPlaceholder(placeholder)
         self.uiTimesheetFrame.setView(tableview)
         self.uiTimesheetFrame.overlay()
