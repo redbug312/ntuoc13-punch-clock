@@ -24,6 +24,7 @@ class MainWindow(QMainWindow):
         placeholder, tableview = QFrame(), QTableView()
         uic.loadUi(context.ui, self)
         uic.loadUi(context.uiPlaceholder, placeholder)
+        self.statusbar.showMessage('v%s' % self.context.build_settings['version'])
 
         placeholder.uiIconLbl.setPixmap(context.pixmapExcel)
         placeholder.uiTextLbl.setText('尚未開啟簽到名單')
