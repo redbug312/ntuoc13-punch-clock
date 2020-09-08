@@ -7,25 +7,32 @@ from datetime import datetime
 from qspreadsheet import SpreadSheetModel
 
 
-def decide_penalty(deadline, now):
+def decide_penalty(deadline, now, *_):
     mins = int((now - deadline).total_seconds() / 60)
-    return 0 if mins <= 0 \
-        else 100 if mins <= 10 \
-        else 200 if mins <= 30 \
-        else inf  # to be determined by case
+    return (0 if mins <= 0 else
+            100 if mins <= 10 else
+            200 if mins <= 30 else
+            inf)  # to be determined by case
 
 
-def provide_brief(deadline, now):
+def provide_brief(deadline, now, *_):
     mins = int((now - deadline).total_seconds() / 60)
-    return '準時簽到' if mins <= 0 \
-        else f'遲到 {mins} 分鐘'
+    return ('準時簽到' if mins <= 0 else
+            '遲到 %d 分鐘' % mins)
+
+
+def conclude_method(deadline, now, inputed):
+    return ('條碼掃描' if len(inputed) == 10 else
+            '手動輸入' if len(inputed) == 9 else
+            '未知方法')
 
 
 PREPENDS = {
     'checked': {'name': '簽到紀錄', 'init': False, 'punch': (lambda *_: True)},
     'penalty': {'name': '酌減獎勵', 'init': None,  'punch': decide_penalty},
     'brief':   {'name': '簽到狀況', 'init': None,  'punch': provide_brief},
-    'moment':  {'name': '簽到時間', 'init': None,  'punch': (lambda _, now: now)},
+    'method':  {'name': '簽到方法', 'init': None,  'punch': conclude_method},
+    'moment':  {'name': '簽到時間', 'init': None,  'punch': (lambda *args: args[1])},
 }
 
 
@@ -37,7 +44,7 @@ class TimesheetModel(SpreadSheetModel):
 
     def punch(self, icol, target, deadline):
         boolmask = self._lookup_boolmask(icol, target)
-        params = (deadline, datetime.now())
+        params = (deadline, datetime.now(), target)
         fields = tuple(map(lambda f: f(*params), self.prepends.punch))
         if not self.df.loc[boolmask].checked.all() \
                 or (self.df.loc[boolmask].penalty > fields[1]).any():
