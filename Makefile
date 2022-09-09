@@ -6,7 +6,7 @@ ifeq ($(OS), Windows_NT)
         PYTHONPATH=$(shell pwd) \
         PATH=/c/Program\ Files\ \(x86\)/NSIS/:$$PATH
 else
-    PYTHON3 ?= python3.6
+    PYTHON3 ?= $(shell which python3.6)
     ENV ?= . $(shell pwd)/venv/bin/activate; \
         PYTHONPATH=$(shell pwd)
 endif
